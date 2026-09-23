@@ -88,8 +88,7 @@ mod tests {
 
     #[test]
     fn reports_kernel_compression() {
-        let mut kernel = b"Linux version 5.4.254-test ".to_vec();
-        kernel.extend_from_slice(&[0x1f, 0x8b, 0x08, 0x00]);
+        let kernel = vec![0x1f, 0x8b, 0x08, 0x00];
         let report = analyze_image(&kernel).unwrap();
         assert_eq!(report.kernel.compression.as_deref(), Some("gzip"));
     }
