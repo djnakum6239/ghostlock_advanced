@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "kernel": {
+    "release": "5.4.254",
+    "build_id": null
+  },
+  "source": "external-analysis",
+  "values": {
+    "example_symbol": "0x0"
+  }
+}
