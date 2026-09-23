@@ -225,7 +225,7 @@ mod tests {
         assert_eq!(detect_release(b"Linux version "), None);
         assert_eq!(detect_release(b"Linux version \xff"), None);
         assert_eq!(detect_release(b"Linux version android-kernel"), None);
-        assert_eq!(detect_release(b"Linux version 5.4.254 bad"), None);
+        assert_eq!(detect_release(b"Linux version 5..4.254"), None);
     }
 
     #[test]
