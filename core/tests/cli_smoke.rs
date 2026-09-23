@@ -22,6 +22,18 @@ fn run(command: &str, args: &[&str]) {
     );
 }
 
+fn run_failure(command: &str, args: &[&str]) {
+    let output = Command::new(env!("CARGO_BIN_EXE_uka-cli"))
+        .arg(command)
+        .args(args)
+        .output()
+        .unwrap();
+    assert!(
+        !output.status.success(),
+        "{command} unexpectedly succeeded"
+    );
+}
+
 fn boot_image() -> Vec<u8> {
     let page = 4096usize;
     let kernel = b"Linux";
@@ -136,6 +148,8 @@ fn exercises_all_cli_commands() {
     run("analyze-sparse", &[sparse.to_str().unwrap()]);
     run("analyze-xbl-config", &[xbl.to_str().unwrap()]);
     run("validate-offsets", &[offsets.to_str().unwrap()]);
+    run_failure("analyze-ota-entry", &[ota.to_str().unwrap(), "missing.img"]);
+    run_failure("analyze-kernel", &[xbl.to_str().unwrap()]);
 
     for path in [
         boot, kernel, payload, dtb, elf, btf, sparse, xbl, offsets, ota,
