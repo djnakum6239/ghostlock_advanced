@@ -263,6 +263,20 @@ mod tests {
     }
 
     #[test]
+    fn decodes_compressed_symbol_name() {
+        let names = [3u8, 0, 1, 2];
+        let token_table = b"T\\0init\\0_task\\0";
+        let mut token_index = vec![0u8; 512];
+        token_index[0..2].copy_from_slice(&0u16.to_le_bytes());
+        token_index[2..4].copy_from_slice(&2u16.to_le_bytes());
+        token_index[4..6].copy_from_slice(&7u16.to_le_bytes());
+        assert_eq!(
+            decode_symbol_name(&names, token_table, &token_index, 0).as_deref(),
+            Some("init_task")
+        );
+    }
+
+    #[test]
     fn scans_synthetic_kallsyms_layout() {
         let mut kernel = vec![0u8; 40 + 256 * 2];
         kernel[0..8].copy_from_slice(&0x1000u64.to_le_bytes());
