@@ -35,6 +35,15 @@ fn boot_image() -> Vec<u8> {
     data
 }
 
+fn payload() -> Vec<u8> {
+    let mut data = Vec::with_capacity(24);
+    data.extend_from_slice(b"CrAU");
+    data.extend_from_slice(&2u64.to_be_bytes());
+    data.extend_from_slice(&0u64.to_be_bytes());
+    data.extend_from_slice(&0u32.to_be_bytes());
+    data
+}
+
 fn dtb() -> Vec<u8> {
     let mut data = vec![0u8; 80];
     data[0..4].copy_from_slice(&0xd00d_feed_u32.to_be_bytes());
@@ -77,9 +86,10 @@ fn sparse() -> Vec<u8> {
     data[4..6].copy_from_slice(&1u16.to_le_bytes());
     data[6..8].copy_from_slice(&0u16.to_le_bytes());
     data[8..10].copy_from_slice(&28u16.to_le_bytes());
-    data[10..12].copy_from_slice(&4096u16.to_le_bytes());
-    data[12..16].copy_from_slice(&1u32.to_le_bytes());
+    data[10..12].copy_from_slice(&12u16.to_le_bytes());
+    data[12..16].copy_from_slice(&4096u32.to_le_bytes());
     data[16..20].copy_from_slice(&1u32.to_le_bytes());
+    data[20..24].copy_from_slice(&1u32.to_le_bytes());
     data
 }
 
@@ -87,6 +97,7 @@ fn sparse() -> Vec<u8> {
 fn exercises_all_cli_commands() {
     let boot = write_fixture("boot.img", &boot_image());
     let kernel = write_fixture("kernel", b"Linux version 5.4.254-test\0");
+    let payload = write_fixture("payload.bin", &payload());
     let dtb = write_fixture("board.dtb", &dtb());
     let elf = write_fixture("kernel.elf", &elf64());
     let btf = write_fixture("kernel.btf", &btf());
@@ -94,7 +105,7 @@ fn exercises_all_cli_commands() {
     let xbl = write_fixture("xbl_config.img", b"xbl_config\0platform=sm7325\0");
     let offsets = write_fixture(
         "offsets.json",
-        br#"{"schema_version":1,"source":"test","kernel":{"release":"5.4.254-test","build_id":null},"offsets":{}}"#,
+        br#"{"schema_version":1,"source":"test","kernel":{"release":"5.4.254-test","build_id":null},"values":{}}"#,
     );
 
     let mut ota_cursor = std::io::Cursor::new(Vec::new());
@@ -114,7 +125,7 @@ fn exercises_all_cli_commands() {
     run("analyze-kernel", &[kernel.to_str().unwrap()]);
     run("analyze-ota", &[ota.to_str().unwrap()]);
     run("analyze-ota-entry", &[ota.to_str().unwrap(), "boot.img"]);
-    run("analyze-payload", &[write_fixture("payload.bin", b"CrAU\\0\\0\\0\\0\\0\\0\\0\\0").to_str().unwrap()]);
+    run("analyze-payload", &[payload.to_str().unwrap()]);
     run("analyze-dtb", &[dtb.to_str().unwrap()]);
     run("analyze-elf", &[elf.to_str().unwrap()]);
     run("analyze-btf", &[btf.to_str().unwrap()]);
@@ -122,7 +133,7 @@ fn exercises_all_cli_commands() {
     run("analyze-xbl-config", &[xbl.to_str().unwrap()]);
     run("validate-offsets", &[offsets.to_str().unwrap()]);
 
-    for path in [boot, kernel, dtb, elf, btf, sparse, xbl, offsets, ota] {
+    for path in [boot, kernel, payload, dtb, elf, btf, sparse, xbl, offsets, ota] {
         let _ = fs::remove_file(path);
     }
 }
