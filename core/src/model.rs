@@ -20,6 +20,7 @@ pub struct KernelImage {
     pub kind: ImageKind,
     pub header_version: Option<u32>,
     pub page_size: Option<u32>,
+    pub kernel_load_addr: Option<u64>,
     pub kernel_offset: Option<u64>,
     pub kernel_size: Option<u64>,
     pub kernel: Vec<u8>,
