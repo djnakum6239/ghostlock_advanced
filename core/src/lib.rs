@@ -6,6 +6,7 @@ pub mod kallsyms;
 pub mod metadata;
 pub mod offsets;
 pub mod report;
+pub mod ota_zip;
 
 pub use model::*;
 
