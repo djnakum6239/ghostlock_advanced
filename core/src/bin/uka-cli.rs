@@ -19,7 +19,7 @@ fn main() -> anyhow::Result<()> {
         Some("analyze") => {
             let path = args.next().ok_or_else(|| anyhow::anyhow!("missing image path"))?;
             let data = fs::read(path)?;
-            println!("{}", serde_json::to_string_pretty(&uka_core::report::analyze_image(&data)?)?);
+            println!("{}", serde_json::to_string_pretty(&uka_core::analysis::analyze_input(&data)?)?);
         }
         Some("analyze-ota") => {
             let path = args.next().ok_or_else(|| anyhow::anyhow!("missing OTA ZIP path"))?;
