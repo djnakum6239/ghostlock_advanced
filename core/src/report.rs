@@ -24,11 +24,21 @@ fn compression_name(kind: &crate::model::CompressionKind) -> Option<String> {
 
 /// Produces a safe, read-only analysis summary for an Android image or raw kernel.
 pub fn analyze_image(data: &[u8]) -> Result<AnalysisReport> {
-    let extracted = extract_kernel(data)?;
-    let analysis_data = decompress_kernel(&extracted.data, &extracted.compression)?;
-    let metadata = detect_metadata(&analysis_data);
+    let detected = detect_image_kind(data);
+    let extracted = match detected {
+        Ok(crate::android_images::DetectedImageKind::Boot) | Err(_) => Some(extract_kernel(data)?),
+        Ok(crate::android_images::DetectedImageKind::VendorBoot)
+        | Ok(crate::android_images::DetectedImageKind::InitBoot) => None,
+    };
+    let metadata = match &extracted {
+        Some(kernel) => {
+            let analysis_data = decompress_kernel(&kernel.data, &kernel.compression)?;
+            detect_metadata(&analysis_data)
+        }
+        None => crate::metadata::KernelMetadata::default(),
+    };
 
-    let image = match detect_image_kind(data) {
+    let image = match detected {
         Ok(crate::android_images::DetectedImageKind::Boot) => {
             let parsed = crate::boot::parse_boot_image(data)?;
             ImageSummary {
@@ -64,7 +74,7 @@ pub fn analyze_image(data: &[u8]) -> Result<AnalysisReport> {
         kernel: KernelSummary {
             release: metadata.release,
             architecture: metadata.architecture,
-            compression: compression_name(&extracted.compression),
+            compression: extracted.as_ref().and_then(|kernel| compression_name(&kernel.compression)),
         },
         symbols: SymbolSummary::default(),
         validation: ValidationSummary::default(),
