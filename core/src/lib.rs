@@ -1,3 +1,4 @@
+pub mod elf;
 pub mod sparse;
 pub mod btf;
 pub mod dtb;
