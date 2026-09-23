@@ -60,3 +60,40 @@ pub fn validate_candidate(candidate: &KallsymsCandidate, kernel_len: usize) -> b
         && candidate.names_table.start >= candidate.address_table.end
         && candidate.token_index.start >= candidate.token_table.end
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn candidate() -> KallsymsCandidate {
+        KallsymsCandidate {
+            address_table: 0..16,
+            names_table: 16..32,
+            markers_table: None,
+            token_table: 32..64,
+            token_index: 64..576,
+            num_syms: 2,
+            address_mode: AddressMode::Absolute,
+            confidence: 0.75,
+        }
+    }
+
+    #[test]
+    fn validates_well_formed_candidate() {
+        assert!(validate_candidate(&candidate(), 1024));
+    }
+
+    #[test]
+    fn rejects_wrong_address_table_size() {
+        let mut value = candidate();
+        value.address_table = 0..8;
+        assert!(!validate_candidate(&value, 1024));
+    }
+
+    #[test]
+    fn rejects_confidence_outside_range() {
+        let mut value = candidate();
+        value.confidence = 1.1;
+        assert!(!validate_candidate(&value, 1024));
+    }
+}
