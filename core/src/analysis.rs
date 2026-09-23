@@ -69,6 +69,13 @@ mod tests {
     }
 
     #[test]
+    #[test]
+    fn dispatches_xbl_metadata_marker() {
+        let data = b"xbl_config\0platform=sm7325\0";
+        assert!(matches!(analyze_input(data).unwrap(), AnalysisResult::XblConfig(_)));
+    }
+
+    #[test]
     fn rejects_empty_input() {
         assert!(analyze_input(&[]).is_err());
     }
