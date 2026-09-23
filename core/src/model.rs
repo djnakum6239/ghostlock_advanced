@@ -100,4 +100,17 @@ pub struct ExtractedKernel {
     pub source: ImageKind,
     pub data: Vec<u8>,
     pub source_offset: Option<u64>,
+    pub compression: CompressionKind,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum CompressionKind {
+    None,
+    Gzip,
+    Xz,
+    Lz4,
+    Lzop,
+    Zstd,
+    Brotli,
+    Unknown,
 }
