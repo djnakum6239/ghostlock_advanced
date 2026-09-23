@@ -98,6 +98,7 @@ mod tests {
         let mut kernel = vec![0x7f, b'E', b'L', b'F', 2, 1, 1, 0];
         kernel.resize(20, 0);
         kernel[18] = 0xb7;
+        kernel[19] = 0x00;
         kernel.extend_from_slice(b" Linux version 5.4.254-test ");
         let report = analyze_image(&kernel).unwrap();
         assert_eq!(report.kernel.architecture.as_deref(), Some("aarch64"));
