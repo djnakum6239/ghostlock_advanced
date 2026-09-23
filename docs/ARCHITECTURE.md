@@ -5,13 +5,14 @@
 The analyzer is organized as a pipeline:
 1. Container detection
 2. Android image parsing
-3. Kernel extraction
-4. Compression detection/decompression
-5. Kernel metadata
-6. DTB/DTBO inspection
-7. Symbol discovery
-8. Candidate validation
-9. Report generation
+3. OTA/payload and firmware container inspection
+4. Kernel extraction
+5. Compression detection/decompression
+6. Kernel metadata
+7. DTB/DTBO and XBL config inspection
+8. Symbol discovery
+9. Candidate validation
+10. Report generation
 
 ## Attribution and implementation provenance
 
@@ -25,3 +26,7 @@ External metadata is treated as data for inspection and validation. The applicat
 
 ## Security boundary
 The project intentionally does not execute imported offset data or connect it to privilege-escalation/exploit execution. This keeps the analyzer useful for compatibility research and forensic work without turning it into an automated exploit adaptation framework.
+
+## Qualcomm firmware metadata
+
+The `xbl_config` inspector treats the blob as opaque, read-only metadata. It reports basic blob characteristics and printable-string boundaries; it does not interpret configuration as executable instructions or apply values to a device.
