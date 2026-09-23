@@ -1,3 +1,4 @@
+pub mod analysis;
 pub mod elf;
 pub mod sparse;
 pub mod btf;
