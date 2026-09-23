@@ -265,7 +265,7 @@ mod tests {
     #[test]
     fn decodes_compressed_symbol_name() {
         let names = [3u8, 0, 1, 2];
-        let token_table = b"T\\0init\\0_task\\0";
+        let token_table = b"T\0init\0_task\0";
         let mut token_index = vec![0u8; 512];
         token_index[0..2].copy_from_slice(&0u16.to_le_bytes());
         token_index[2..4].copy_from_slice(&2u16.to_le_bytes());
