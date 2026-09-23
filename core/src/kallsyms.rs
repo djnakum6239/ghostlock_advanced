@@ -317,6 +317,8 @@ mod tests {
             let offset = 40 + index * 2;
             kernel[offset..offset + 2].copy_from_slice(&value.to_le_bytes());
         }
+        assert!(looks_like_token_index(&kernel, 42));
+        assert!(valid_token_table(&kernel, 24, 42));
         let candidates = scan_candidates(&kernel);
         assert!(candidates.iter().any(|candidate| {
             candidate.num_syms == 2
