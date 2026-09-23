@@ -123,4 +123,5 @@ pub struct ReportProvenance {
     pub analyzer: String,
     pub mode: String,
     pub safe_read_only: bool,
+    pub source: String,
 }
