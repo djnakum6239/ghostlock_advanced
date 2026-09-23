@@ -91,6 +91,36 @@ fn monotonic_addresses(data: &[u8], start: usize, count: usize, width: usize) ->
     true
 }
 
+/// Decodes one compressed kallsyms name using its token table and token index.
+pub fn decode_symbol_name(
+    names: &[u8],
+    token_table: &[u8],
+    token_index: &[u8],
+    offset: usize,
+) -> Option<String> {
+    let length = *names.get(offset)? as usize;
+    let compressed = names.get(offset + 1..offset + 1 + length)?;
+    if token_index.len() < 512 {
+        return None;
+    }
+
+    let mut expanded = Vec::new();
+    for &token in compressed {
+        let index = token as usize * 2;
+        let token_offset = u16::from_le_bytes(token_index.get(index..index + 2)?.try_into().ok()?) as usize;
+        let token_bytes = token_table.get(token_offset..)?.split(|&byte| byte == 0).next()?;
+        expanded.extend_from_slice(token_bytes);
+    }
+
+    if expanded.is_empty() {
+        return None;
+    }
+    if expanded.len() > 1 {
+        expanded.remove(0);
+    }
+    String::from_utf8(expanded).ok()
+}
+
 /// Scans for structurally plausible embedded kallsyms tables.
 ///
 /// This is deliberately conservative: it only reports candidates when the
