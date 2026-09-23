@@ -2,7 +2,7 @@ use anyhow::Result;
 
 use crate::{
     android_images::detect_image_kind,
-    kernel::extract_kernel,
+    kernel::{decompress_kernel, extract_kernel},
     metadata::detect_metadata,
     model::{
         AnalysisReport, ImageKind, ImageSummary, KernelSummary, SymbolSummary, ValidationSummary,
@@ -25,7 +25,8 @@ fn compression_name(kind: &crate::model::CompressionKind) -> Option<String> {
 /// Produces a safe, read-only analysis summary for an Android image or raw kernel.
 pub fn analyze_image(data: &[u8]) -> Result<AnalysisReport> {
     let extracted = extract_kernel(data)?;
-    let metadata = detect_metadata(&extracted.data);
+    let analysis_data = decompress_kernel(&extracted.data, &extracted.compression)?;
+    let metadata = detect_metadata(&analysis_data);
 
     let image = match detect_image_kind(data) {
         Ok(crate::android_images::DetectedImageKind::Boot) => {
@@ -91,6 +92,17 @@ mod tests {
         let kernel = vec![0x1f, 0x8b, 0x08, 0x00];
         let report = analyze_image(&kernel).unwrap();
         assert_eq!(report.kernel.compression.as_deref(), Some("gzip"));
+    }
+
+    #[test]
+    fn reports_metadata_from_compressed_kernel() {
+        use std::io::Write;
+        let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+        encoder.write_all(b"Linux version 5.4.254-qgki-gd8141a929274 #1").unwrap();
+        let compressed = encoder.finish().unwrap();
+        let report = analyze_image(&compressed).unwrap();
+        assert_eq!(report.kernel.compression.as_deref(), Some("gzip"));
+        assert_eq!(report.kernel.release.as_deref(), Some("5.4.254-qgki-gd8141a929274"));
     }
 
     #[test]
