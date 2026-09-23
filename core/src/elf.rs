@@ -153,4 +153,16 @@ mod tests {
     fn rejects_bad_elf_magic() {
         assert!(parse_elf_header(&[0u8; 64]).is_err());
     }
+
+    #[test]
+    fn rejects_invalid_elf_header_size() {
+        let mut data = vec![0u8; 64];
+        data[..4].copy_from_slice(b"\\x7fELF");
+        data[4] = 2;
+        data[5] = 1;
+        data[6] = 1;
+        data[16..20].copy_from_slice(&1u32.to_le_bytes());
+        data[52..54].copy_from_slice(&63u16.to_le_bytes());
+        assert!(parse_elf_header(&data).is_err());
+    }
 }
