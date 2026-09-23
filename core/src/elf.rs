@@ -63,11 +63,20 @@ pub fn parse_elf_header(data: &[u8]) -> Result<ElfHeader> {
     if endian != 1 || (class != 1 && class != 2) {
         bail!("unsupported ELF class or endianness");
     }
+    if data[6] != 1 {
+        bail!("unsupported ELF identification version");
+    }
 
     let machine = read_u16_le(data, 18)?;
     let (entry, phoff, shoff, phentsize, phnum, shentsize, shnum, shstrndx) = if class == 2 {
         if data.len() < 64 {
             bail!("ELF64 header is truncated");
+        }
+        if read_u16_le(data, 52)? != 64 {
+            bail!("ELF64 header size is invalid");
+        }
+        if read_u32_le(data, 16)? != 1 {
+            bail!("unsupported ELF version");
         }
         (
             read_u64_le(data, 24)?,
@@ -82,6 +91,12 @@ pub fn parse_elf_header(data: &[u8]) -> Result<ElfHeader> {
     } else {
         if data.len() < 52 {
             bail!("ELF32 header is truncated");
+        }
+        if read_u16_le(data, 40)? != 52 {
+            bail!("ELF32 header size is invalid");
+        }
+        if read_u32_le(data, 16)? != 1 {
+            bail!("unsupported ELF version");
         }
         (
             u64::from(read_u32_le(data, 24)?),
