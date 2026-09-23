@@ -3,7 +3,7 @@ use crate::model::{ImageKind, InitBootImage};
 
 const MAGIC: &[u8; 8] = b"ANDROID!";
 const PAGE_SIZE: usize = 4096;
-const HEADER_SIZE_V4: u32 = 1580;
+const HEADER_SIZE_V4: u32 = 1584;
 const BOOT_SIGNATURE_SIZE_OFFSET: usize = 1580;
 
 fn read_u32(data: &[u8], offset: usize) -> Result<u32> {
