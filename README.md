@@ -67,3 +67,7 @@ The CLI currently exposes:
 The unified `analyze` command emits a read-only JSON result for recognized containers and kernel/image formats. Image reports include image type, kernel metadata, compression, symbol summary, and validation fields.
 
 Android integration will be added after the core parser APIs stabilize.
+
+## Development status
+
+This repository is under active development. Parser coverage, JSON schemas, Android UI integration, and regression fixtures are expected to evolve. Do not treat current output as a stable compatibility guarantee.
