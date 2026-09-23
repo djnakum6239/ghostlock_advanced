@@ -61,6 +61,8 @@ pub struct InitBootImage {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisReport {
+    pub schema_version: u32,
+    pub provenance: ReportProvenance,
     pub image: ImageSummary,
     pub kernel: KernelSummary,
     pub symbols: SymbolSummary,
@@ -114,4 +116,11 @@ pub enum CompressionKind {
     Zstd,
     Brotli,
     Unknown,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReportProvenance {
+    pub analyzer: String,
+    pub mode: String,
+    pub safe_read_only: bool,
 }
