@@ -99,7 +99,10 @@ mod tests {
 
     #[test]
     fn reports_kernel_compression() {
-        let kernel = vec![0x1f, 0x8b, 0x08, 0x00];
+        use std::io::Write;
+        let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+        encoder.write_all(b"kernel").unwrap();
+        let kernel = encoder.finish().unwrap();
         let report = analyze_image(&kernel).unwrap();
         assert_eq!(report.kernel.compression.as_deref(), Some("gzip"));
     }
