@@ -5,6 +5,7 @@ pub mod init_boot;
 pub mod kallsyms;
 pub mod metadata;
 pub mod offsets;
+pub mod report;
 
 pub use model::*;
 
