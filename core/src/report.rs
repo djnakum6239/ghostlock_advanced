@@ -3,6 +3,7 @@ use anyhow::Result;
 use crate::{
     android_images::detect_image_kind,
     kallsyms::scan_candidates,
+    ota_zip::read_ota_entry,
     kernel::{decompress_kernel, extract_kernel},
     metadata::detect_metadata,
     model::{
@@ -90,6 +91,12 @@ pub fn analyze_image(data: &[u8]) -> Result<AnalysisReport> {
         symbols,
         validation: ValidationSummary::default(),
     })
+}
+
+/// Analyzes an image stored as a named entry in an OTA ZIP package.
+pub fn analyze_ota_entry(data: &[u8], entry_name: &str) -> Result<AnalysisReport> {
+    let image = read_ota_entry(data, entry_name)?;
+    analyze_image(&image)
 }
 
 #[cfg(test)]
