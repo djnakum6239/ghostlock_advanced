@@ -52,6 +52,11 @@ fn main() -> anyhow::Result<()> {
             let data = fs::read(path)?;
             println!("{}", serde_json::to_string_pretty(&uka_core::btf::parse_btf_header(&data)?)?);
         }
+        Some("analyze-xbl-config") => {
+            let path = args.next().ok_or_else(|| anyhow::anyhow!("missing xbl_config path"))?;
+            let data = fs::read(path)?;
+            println!("{}", serde_json::to_string_pretty(&uka_core::xbl_config::inspect_xbl_config(&data)?)?);
+        }
         Some("analyze-sparse") => {
             let path = args.next().ok_or_else(|| anyhow::anyhow!("missing sparse image path"))?;
             let data = fs::read(path)?;
@@ -75,6 +80,7 @@ fn main() -> anyhow::Result<()> {
             eprintln!("  uka-cli analyze-elf <elf>");
             eprintln!("  uka-cli analyze-btf <btf>");
             eprintln!("  uka-cli analyze-sparse <sparse.img>");
+            eprintln!("  uka-cli analyze-xbl-config <xbl_config.img>");
             eprintln!("  uka-cli validate-offsets <offsets.json>");
         }
     }
