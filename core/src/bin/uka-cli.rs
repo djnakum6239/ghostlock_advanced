@@ -16,6 +16,11 @@ fn main() -> anyhow::Result<()> {
             let data = fs::read(path)?;
             println!("{}", serde_json::to_string_pretty(&detect_metadata(&data))?);
         }
+        Some("analyze") => {
+            let path = args.next().ok_or_else(|| anyhow::anyhow!("missing image path"))?;
+            let data = fs::read(path)?;
+            println!("{}", serde_json::to_string_pretty(&uka_core::report::analyze_image(&data)?)?);
+        }
         Some("validate-offsets") => {
             let path = args.next().ok_or_else(|| anyhow::anyhow!("missing JSON path"))?;
             let text = fs::read_to_string(path)?;
@@ -26,6 +31,7 @@ fn main() -> anyhow::Result<()> {
             eprintln!("Usage:");
             eprintln!("  uka-cli analyze-boot <boot.img>");
             eprintln!("  uka-cli analyze-kernel <kernel>");
+            eprintln!("  uka-cli analyze <image-or-kernel>");
             eprintln!("  uka-cli validate-offsets <offsets.json>");
         }
     }
