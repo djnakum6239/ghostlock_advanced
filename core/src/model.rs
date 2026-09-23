@@ -47,6 +47,19 @@ pub struct VendorBootImage {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InitBootImage {
+    pub kind: ImageKind,
+    pub header_version: u32,
+    pub page_size: u32,
+    pub header_size: u32,
+    pub kernel_size: u32,
+    pub ramdisk_offset: u64,
+    pub ramdisk_size: u32,
+    pub boot_signature_size: u32,
+    pub ramdisk: Vec<u8>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisReport {
     pub image: ImageSummary,
     pub kernel: KernelSummary,
