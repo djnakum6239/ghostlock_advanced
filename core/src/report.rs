@@ -94,6 +94,7 @@ pub fn analyze_image(data: &[u8]) -> Result<AnalysisReport> {
             analyzer: "uka-core".into(),
             mode: "read-only".into(),
             safe_read_only: true,
+            source: "supplied-input".into(),
         },
         image,
         kernel: KernelSummary {
