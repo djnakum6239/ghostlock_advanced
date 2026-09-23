@@ -49,12 +49,13 @@ mod tests {
 
     #[test]
     fn rejects_init_boot_as_kernel_source() {
-        let mut image = vec![0u8; 4096];
+        let mut image = vec![0u8; 8192];
         image[..8].copy_from_slice(b"ANDROID!");
         image[8..12].copy_from_slice(&0u32.to_le_bytes());
         image[12..16].copy_from_slice(&1u32.to_le_bytes());
         image[20..24].copy_from_slice(&1584u32.to_le_bytes());
         image[40..44].copy_from_slice(&4u32.to_le_bytes());
+        image[4096] = 0x41;
         let err = extract_kernel(&image).unwrap_err().to_string();
         assert!(err.contains("init_boot contains no kernel payload"));
     }
