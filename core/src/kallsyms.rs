@@ -57,8 +57,14 @@ fn monotonic_addresses(data: &[u8], start: usize, count: usize, width: usize) ->
         return false;
     }
     let mut previous = match width {
-        4 => read_u32_le(data, start).map(u64::from)?,
-        8 => read_u64_le(data, start)?,
+        4 => match read_u32_le(data, start) {
+            Some(value) => u64::from(value),
+            None => return false,
+        },
+        8 => match read_u64_le(data, start) {
+            Some(value) => value,
+            None => return false,
+        },
         _ => return false,
     };
     for index in 1..count {
