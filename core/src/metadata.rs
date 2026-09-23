@@ -45,9 +45,35 @@ pub fn detect_release(kernel: &[u8]) -> Option<String> {
     }
 }
 
+/// Extracts a compiler identifier from a Linux kernel's embedded build strings.
+pub fn detect_compiler(kernel: &[u8]) -> Option<String> {
+    const PREFIXES: [&[u8]; 2] = [b"gcc version ", b"clang version "];
+
+    for prefix in PREFIXES {
+        let start = match kernel.windows(prefix.len()).position(|window| window == prefix) {
+            Some(position) => position + prefix.len(),
+            None => continue,
+        };
+        let rest = &kernel[start..];
+        let end = rest
+            .iter()
+            .position(|&byte| byte == b' ' || byte == b'\0' || byte == b'\n')
+            .unwrap_or(rest.len());
+        if end == 0 {
+            continue;
+        }
+        let compiler = std::str::from_utf8(&rest[..end]).ok()?;
+        if compiler.bytes().all(|byte| byte.is_ascii_graphic()) {
+            return Some(compiler.to_owned());
+        }
+    }
+
+    None
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{detect_architecture, detect_release};
+    use super::{detect_architecture, detect_compiler, detect_release};
 
     #[test]
     fn detects_elf_machine_architecture() {
@@ -83,4 +109,16 @@ mod tests {
         assert_eq!(detect_release(b"Linux version "), None);
         assert_eq!(detect_release(b"Linux version \xff"), None);
     }
+    #[test]
+    fn detects_gcc_and_clang_versions() {
+        assert_eq!(detect_compiler(b"built with gcc version 12.3.0 (GCC)"), Some("12.3.0".to_owned()));
+        assert_eq!(detect_compiler(b"built with clang version 18.1.8"), Some("18.1.8".to_owned()));
+    }
+
+    #[test]
+    fn rejects_missing_compiler_version() {
+        assert_eq!(detect_compiler(b"compiler information unavailable"), None);
+        assert_eq!(detect_compiler(b"gcc version "), None);
+    }
+
 }
