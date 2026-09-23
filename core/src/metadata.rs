@@ -38,9 +38,7 @@ pub fn detect_release(kernel: &[u8]) -> Option<String> {
         return None;
     }
     let release = std::str::from_utf8(&rest[..end]).ok()?;
-    let version_core = release
-        .split_once(['-', '+', '_', '~'])
-        .map_or(release, |(core, _)| core);
+    let version_core = release.split_once('-').map_or(release, |(core, _)| core);
     let components: Vec<&str> = version_core.split('.').collect();
     if components.len() < 2
         || components
