@@ -306,12 +306,12 @@ mod tests {
 
     #[test]
     fn scans_synthetic_kallsyms_layout() {
-        let mut kernel = vec![0u8; 40 + 256 * 2];
+        let mut kernel = vec![0u8; 42 + 256 * 2];
         kernel[0..8].copy_from_slice(&0x1000u64.to_le_bytes());
         kernel[8..16].copy_from_slice(&0x2000u64.to_le_bytes());
         kernel[16..20].copy_from_slice(&2u32.to_le_bytes());
         kernel[20..24].copy_from_slice(&[1, 2, 3, 0]);
-        kernel[24..40].copy_from_slice(b"A\0B\0C\0D\0E\0F\0G\0H\0");
+        kernel[24..42].copy_from_slice(b"A\0B\0C\0D\0E\0F\0G\0H\0I\0");
         for index in 0..256usize {
             let value = (index.min(15) * 2) as u16;
             let offset = 40 + index * 2;
@@ -321,7 +321,7 @@ mod tests {
         assert!(candidates.iter().any(|candidate| {
             candidate.num_syms == 2
                 && candidate.address_table == (0..16)
-                && candidate.token_table == (24..40)
+                && candidate.token_table == (24..42)
         }));
     }
 
