@@ -42,9 +42,9 @@ pub fn parse_vendor_boot_image(data: &[u8]) -> Result<VendorBootImage> {
     let kernel_load_addr = read_u32(data, 16)? as u64;
     let ramdisk_load_addr = read_u32(data, 20)? as u64;
     let vendor_ramdisk_size = read_u32(data, 24)? as usize;
-    let header_size = read_u32(data, 2088)? as usize;
-    let dtb_size = read_u32(data, 2092)? as usize;
-    let dtb_load_addr = read_u64(data, 2096)?;
+    let header_size = read_u32(data, 2096)? as usize;
+    let dtb_size = read_u32(data, 2100)? as usize;
+    let dtb_load_addr = read_u64(data, 2104)?;
 
     let minimum_header = if header_version == 4 { V4_HEADER_MIN } else { V3_HEADER_MIN };
     if header_size < minimum_header || header_size > data.len() { bail!("invalid vendor_boot header size"); }
@@ -56,10 +56,10 @@ pub fn parse_vendor_boot_image(data: &[u8]) -> Result<VendorBootImage> {
     let dtb = range(data, dtb_offset, dtb_size, "DTB")?;
 
     let (table_offset, table_size, bootconfig_offset, bootconfig_size) = if header_version == 4 {
-        let table_size = read_u32(data, 2108)? as usize;
-        let entries = read_u32(data, 2112)? as usize;
-        let entry_size = read_u32(data, 2116)? as usize;
-        let config_size = read_u32(data, 2120)? as usize;
+        let table_size = read_u32(data, 2112)? as usize;
+        let entries = read_u32(data, 2116)? as usize;
+        let entry_size = read_u32(data, 2120)? as usize;
+        let config_size = read_u32(data, 2124)? as usize;
         if entry_size == 0 && entries != 0 { bail!("invalid vendor ramdisk table entry size"); }
         let expected = entries.checked_mul(entry_size).ok_or_else(|| anyhow::anyhow!("vendor ramdisk table overflow"))?;
         if expected > table_size { bail!("vendor ramdisk table is smaller than its entries"); }
@@ -96,14 +96,14 @@ mod tests {
         data[16..20].copy_from_slice(&0x8000_0000u32.to_le_bytes());
         data[20..24].copy_from_slice(&0x8100_0000u32.to_le_bytes());
         data[24..28].copy_from_slice(&(ramdisk as u32).to_le_bytes());
-        data[2088..2092].copy_from_slice(&(header as u32).to_le_bytes());
-        data[2092..2096].copy_from_slice(&8u32.to_le_bytes());
-        data[2096..2104].copy_from_slice(&0x8200_0000u64.to_le_bytes());
+        data[2096..2100].copy_from_slice(&(header as u32).to_le_bytes());
+        data[2100..2104].copy_from_slice(&8u32.to_le_bytes());
+        data[2104..2112].copy_from_slice(&0x8200_0000u64.to_le_bytes());
         if version == 4 {
-            data[2108..2112].copy_from_slice(&0u32.to_le_bytes());
             data[2112..2116].copy_from_slice(&0u32.to_le_bytes());
             data[2116..2120].copy_from_slice(&0u32.to_le_bytes());
             data[2120..2124].copy_from_slice(&0u32.to_le_bytes());
+            data[2124..2128].copy_from_slice(&0u32.to_le_bytes());
         }
         data[ramdisk_off..ramdisk_off + ramdisk].fill(0xAA);
         data[dtb_off..dtb_off + 8].fill(0xD0);
