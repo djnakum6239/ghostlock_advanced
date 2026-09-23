@@ -1,4 +1,5 @@
 use anyhow::{bail, Result};
+use std::io::Read;
 use crate::{boot::parse_boot_image, init_boot::parse_init_boot_image, model::{CompressionKind, ExtractedKernel, ImageKind}, vendor_boot::parse_vendor_boot_image};
 
 fn detect_compression(data: &[u8]) -> CompressionKind {
@@ -7,6 +8,35 @@ fn detect_compression(data: &[u8]) -> CompressionKind {
     else if data.starts_with(&[0x04, 0x22, 0x4d, 0x18]) { CompressionKind::Lz4 }
     else if data.starts_with(&[0x28, 0xb5, 0x2f, 0xfd]) { CompressionKind::Zstd }
     else { CompressionKind::None }
+}
+
+/// Decompresses a supported kernel payload into its uncompressed byte stream.
+pub fn decompress_kernel(data: &[u8], compression: &CompressionKind) -> Result<Vec<u8>> {
+    match compression {
+        CompressionKind::None => Ok(data.to_vec()),
+        CompressionKind::Gzip => {
+            let mut decoder = flate2::read::GzDecoder::new(data);
+            let mut output = Vec::new();
+            decoder.read_to_end(&mut output)?;
+            Ok(output)
+        }
+        CompressionKind::Xz => {
+            let mut decoder = xz2::read::XzDecoder::new(data);
+            let mut output = Vec::new();
+            decoder.read_to_end(&mut output)?;
+            Ok(output)
+        }
+        CompressionKind::Lz4 => {
+            let mut decoder = lz4_flex::frame::FrameDecoder::new(data);
+            let mut output = Vec::new();
+            decoder.read_to_end(&mut output)?;
+            Ok(output)
+        }
+        CompressionKind::Zstd => zstd::stream::decode_all(data).map_err(Into::into),
+        CompressionKind::Lzop => bail!("lzop decompression is not implemented"),
+        CompressionKind::Brotli => bail!("brotli decompression is not implemented"),
+        CompressionKind::Unknown => bail!("unknown kernel compression"),
+    }
 }
 
 pub fn extract_kernel(data: &[u8]) -> Result<ExtractedKernel> {
