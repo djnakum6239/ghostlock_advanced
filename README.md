@@ -49,4 +49,12 @@ cargo test --workspace
 cargo build --workspace
 ```
 
+The CLI currently exposes:
+- `uka-cli analyze-boot <boot.img>`
+- `uka-cli analyze-kernel <kernel>`
+- `uka-cli analyze <image-or-kernel>`
+- `uka-cli validate-offsets <offsets.json>`
+
+The unified `analyze` command emits a read-only JSON report covering image type, kernel metadata, compression, symbol summary, and validation fields.
+
 Android integration will be added after the core parser APIs stabilize.
