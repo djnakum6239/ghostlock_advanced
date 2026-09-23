@@ -28,10 +28,8 @@ pub fn inspect_xbl_config(data: &[u8]) -> Result<XblConfigSummary> {
                 in_string = false;
             }
             has_null_padding = true;
-        } else if byte.is_ascii_graphic() || byte == b' ' {
-            in_string = true;
         } else {
-            in_string = false;
+            in_string = byte.is_ascii_graphic() || byte == b' ';
         }
     }
 
