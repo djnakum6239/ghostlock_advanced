@@ -105,6 +105,21 @@ mod tests {
     }
 
     #[test]
+    fn analyzes_init_boot_without_kernel_payload() {
+        let mut image = vec![0u8; 4096 + 4];
+        image[..8].copy_from_slice(b"ANDROID!");
+        image[8..12].copy_from_slice(&0u32.to_le_bytes());
+        image[12..16].copy_from_slice(&4u32.to_le_bytes());
+        image[20..24].copy_from_slice(&1584u32.to_le_bytes());
+        image[40..44].copy_from_slice(&4u32.to_le_bytes());
+        image[1580..1584].copy_from_slice(&0u32.to_le_bytes());
+        image[4096..4100].copy_from_slice(b"test");
+        let report = analyze_image(&image).unwrap();
+        assert_eq!(report.image.kind, Some(ImageKind::InitBoot));
+        assert_eq!(report.kernel.release, None);
+    }
+
+    #[test]
     fn reports_metadata_from_compressed_kernel() {
         use std::io::Write;
         let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
