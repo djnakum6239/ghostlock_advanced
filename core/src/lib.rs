@@ -1,3 +1,4 @@
+pub mod sparse;
 pub mod btf;
 pub mod dtb;
 pub mod containers;
