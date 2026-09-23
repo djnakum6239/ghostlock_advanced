@@ -33,7 +33,10 @@ pub fn detect_release(kernel: &[u8]) -> Option<String> {
     const PREFIX: &[u8] = b"Linux version ";
     let start = kernel.windows(PREFIX.len()).position(|window| window == PREFIX)? + PREFIX.len();
     let rest = &kernel[start..];
-    let end = rest.iter().position(|&byte| byte == b' ' || byte == b'\0' || byte == b'\n')?;
+    let end = rest
+        .iter()
+        .position(|&byte| byte == b' ' || byte == b'\0' || byte == b'\n')
+        .unwrap_or(rest.len());
     if end == 0 {
         return None;
     }
