@@ -77,6 +77,7 @@ pub struct ImageSummary {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct KernelSummary {
     pub release: Option<String>,
+    pub build_id: Option<String>,
     pub architecture: Option<String>,
     pub compression: Option<String>,
 }
