@@ -234,13 +234,13 @@ mod tests {
 
         elf[64..68].copy_from_slice(&4u32.to_le_bytes());
         elf[72..80].copy_from_slice(&128u64.to_le_bytes());
-        elf[96..104].copy_from_slice(&28u64.to_le_bytes());
+        elf[96..104].copy_from_slice(&36u64.to_le_bytes());
 
         elf[128..132].copy_from_slice(&4u32.to_le_bytes());
         elf[132..136].copy_from_slice(&20u32.to_le_bytes());
         elf[136..140].copy_from_slice(&3u32.to_le_bytes());
         elf[140..144].copy_from_slice(b"GNU\0");
-        elf[148..168].copy_from_slice(&[
+        elf[144..164].copy_from_slice(&[
             0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
             0x10, 0x32, 0x54, 0x76, 0x98, 0xba, 0xdc, 0xfe,
             0x11, 0x22, 0x33, 0x44,
