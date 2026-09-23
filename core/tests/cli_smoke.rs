@@ -23,7 +23,10 @@ fn run_json(command: &str, args: &[&str]) -> serde_json::Value {
     let stdout = String::from_utf8(output.stdout).unwrap();
     let value: serde_json::Value = serde_json::from_str(&stdout)
         .unwrap_or_else(|error| panic!("{command} emitted invalid JSON: {error}: {stdout}"));
-    assert!(value.is_object(), "{command} emitted a non-object JSON value");
+    assert!(
+        value.is_object(),
+        "{command} emitted a non-object JSON value"
+    );
     value
 }
 
