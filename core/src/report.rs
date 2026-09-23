@@ -92,4 +92,14 @@ mod tests {
         let report = analyze_image(&kernel).unwrap();
         assert_eq!(report.kernel.compression.as_deref(), Some("gzip"));
     }
+
+    #[test]
+    fn reports_raw_kernel_architecture() {
+        let mut kernel = b"Linux version 5.4.254-test ".to_vec();
+        kernel.extend_from_slice(&[0x7f, b'E', b'L', b'F', 2, 1, 1, 0]);
+        kernel.resize(20, 0);
+        kernel[18] = 0xb7;
+        let report = analyze_image(&kernel).unwrap();
+        assert_eq!(report.kernel.architecture.as_deref(), Some("aarch64"));
+    }
 }
