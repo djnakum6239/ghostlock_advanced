@@ -7,7 +7,7 @@ use crate::{
     kernel::{decompress_kernel, extract_kernel},
     metadata::detect_metadata,
     model::{
-        AnalysisReport, ImageKind, ImageSummary, KernelSummary, SymbolSummary, ValidationSummary,
+        AnalysisReport, ImageKind, ImageSummary, KernelSummary, ReportProvenance, SymbolSummary, ValidationSummary,
     },
 };
 
@@ -89,6 +89,12 @@ pub fn analyze_image(data: &[u8]) -> Result<AnalysisReport> {
     };
 
     Ok(AnalysisReport {
+        schema_version: 1,
+        provenance: ReportProvenance {
+            analyzer: "uka-core".into(),
+            mode: "read-only".into(),
+            safe_read_only: true,
+        },
         image,
         kernel: KernelSummary {
             release: metadata.release,
