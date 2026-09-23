@@ -9,3 +9,4 @@ pub mod offsets;
 pub use model::*;
 
 pub mod android_images;
+pub mod kernel;
