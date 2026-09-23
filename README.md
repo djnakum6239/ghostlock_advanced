@@ -18,10 +18,20 @@ This project is intended for kernel/image forensics, compatibility research, deb
 
 ## Credits and attribution
 
-This project is an independent implementation and does not claim authorship of upstream tools, research, kernel sources, or device trees that may be used for comparison, regression testing, or compatibility research.
+This project is an independent research/analysis implementation. When ideas, formats, algorithms, or implementation details are derived from existing projects, their original creators and upstream projects are credited here.
 
-When code, algorithms, documentation, or other implementation details are derived from or directly adapted from another project, that source and its original authors should be credited in the relevant source file and/or documentation, and its license terms must be preserved. Notable research references include **YuKongA / ghostlock-app**, **JoinChang / ghostlock-oneplus**, and **marin-m / vmlinux-to-elf**, along with Android/Linux/Qualcomm/OnePlus community sources. No upstream implementation is copied here unless its applicable license permits it and attribution is retained.
+### Research and implementation references
 
+- **YuKongA — ghostlock-app**: boot/OTA analysis, kernel extraction, and kallsyms-recovery research.
+- **JoinChang — ghostlock-oneplus**: Android boot-image and kallsyms-analysis workflow documentation.
+- **marin-m — vmlinux-to-elf**: kernel ELF reconstruction tooling.
+- **Android Open Source Project (AOSP)**: Android boot-image, vendor_boot, and init_boot format definitions and tooling.
+- **Linux kernel community**: kernel metadata, ELF, kallsyms, BTF, and related format/documentation references.
+- **Qualcomm / OnePlus open-source kernel and device-tree projects**: platform-specific reference material for Snapdragon/OnePlus analysis.
+
+No upstream implementation is intentionally copied into this repository unless its license permits reuse. If code is adapted from an upstream project, the relevant source, license, and authors will be identified alongside the implementation.
+
+If you believe a contribution here should receive additional attribution, please open an issue with the relevant upstream project and source location.
 ## Repository layout
 - `app/` - Android UI
 - `core/` - Rust analysis engine
