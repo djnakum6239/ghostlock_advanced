@@ -9,7 +9,7 @@ fn write_fixture(name: &str, data: &[u8]) -> std::path::PathBuf {
     path
 }
 
-fn run(command: &str, args: &[&str]) {
+fn run_json(command: &str, args: &[&str]) -> serde_json::Value {
     let output = Command::new(env!("CARGO_BIN_EXE_uka-cli"))
         .arg(command)
         .args(args)
@@ -20,6 +20,11 @@ fn run(command: &str, args: &[&str]) {
         "{command} failed: {}",
         String::from_utf8_lossy(&output.stderr)
     );
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let value: serde_json::Value = serde_json::from_str(&stdout)
+        .unwrap_or_else(|error| panic!("{command} emitted invalid JSON: {error}: {stdout}"));
+    assert!(value.is_object(), "{command} emitted a non-object JSON value");
+    value
 }
 
 fn run_failure(command: &str, args: &[&str]) {
@@ -133,19 +138,24 @@ fn exercises_all_cli_commands() {
     }
     let ota = write_fixture("ota.zip", ota_cursor.get_ref());
 
-    run("analyze", &[kernel.to_str().unwrap()]);
-    run("analyze-boot", &[boot.to_str().unwrap()]);
-    run("analyze-kernel", &[kernel.to_str().unwrap()]);
-    run("analyze-ota", &[ota.to_str().unwrap()]);
-    run("analyze-ota-entry", &[ota.to_str().unwrap(), "boot.img"]);
-    run("analyze-payload", &[payload.to_str().unwrap()]);
-    run("analyze-dtb", &[dtb.to_str().unwrap()]);
-    run("analyze-elf", &[elf.to_str().unwrap()]);
-    run("analyze-btf", &[btf.to_str().unwrap()]);
-    run("analyze-sparse", &[sparse.to_str().unwrap()]);
-    run("analyze-xbl-config", &[xbl.to_str().unwrap()]);
-    run("validate-offsets", &[offsets.to_str().unwrap()]);
+    let _ = run_json("analyze", &[kernel.to_str().unwrap()]);
+    let _ = run_json("analyze-boot", &[boot.to_str().unwrap()]);
+    let _ = run_json("analyze-kernel", &[kernel.to_str().unwrap()]);
+    let _ = run_json("analyze-ota", &[ota.to_str().unwrap()]);
+    let _ = run_json("analyze-ota-entry", &[ota.to_str().unwrap(), "boot.img"]);
+    let _ = run_json("analyze-payload", &[payload.to_str().unwrap()]);
+    let _ = run_json("analyze-dtb", &[dtb.to_str().unwrap()]);
+    let _ = run_json("analyze-elf", &[elf.to_str().unwrap()]);
+    let _ = run_json("analyze-btf", &[btf.to_str().unwrap()]);
+    let _ = run_json("analyze-sparse", &[sparse.to_str().unwrap()]);
+    let _ = run_json("analyze-xbl-config", &[xbl.to_str().unwrap()]);
+    let _ = run_json("validate-offsets", &[offsets.to_str().unwrap()]);
     run_failure("analyze-ota-entry", &[ota.to_str().unwrap(), "missing.img"]);
+    run_failure("analyze-payload", &[kernel.to_str().unwrap()]);
+    run_failure("analyze-dtb", &[kernel.to_str().unwrap()]);
+    run_failure("analyze-elf", &[kernel.to_str().unwrap()]);
+    run_failure("analyze-btf", &[kernel.to_str().unwrap()]);
+    run_failure("analyze-sparse", &[kernel.to_str().unwrap()]);
     let missing_kernel = std::env::temp_dir().join(format!(
         "uka-cli-smoke-missing-kernel-{}",
         std::process::id()
