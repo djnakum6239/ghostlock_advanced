@@ -2,6 +2,7 @@ use anyhow::Result;
 
 use crate::{
     android_images::detect_image_kind,
+    kallsyms::scan_candidates,
     kernel::{decompress_kernel, extract_kernel},
     metadata::detect_metadata,
     model::{
@@ -30,12 +31,22 @@ pub fn analyze_image(data: &[u8]) -> Result<AnalysisReport> {
         Ok(crate::android_images::DetectedImageKind::VendorBoot)
         | Ok(crate::android_images::DetectedImageKind::InitBoot) => None,
     };
-    let metadata = match &extracted {
+    let (metadata, symbols) = match &extracted {
         Some(kernel) => {
             let analysis_data = decompress_kernel(&kernel.data, &kernel.compression)?;
-            detect_metadata(&analysis_data)
+            let metadata = detect_metadata(&analysis_data);
+            let symbols = scan_candidates(&analysis_data)
+                .into_iter()
+                .next()
+                .map(|candidate| SymbolSummary {
+                    source: Some("embedded-kallsyms".into()),
+                    count: Some(candidate.num_syms),
+                    confidence: candidate.confidence,
+                })
+                .unwrap_or_default();
+            (metadata, symbols)
         }
-        None => crate::metadata::KernelMetadata::default(),
+        None => (crate::metadata::KernelMetadata::default(), SymbolSummary::default()),
     };
 
     let image = match detected {
@@ -76,7 +87,7 @@ pub fn analyze_image(data: &[u8]) -> Result<AnalysisReport> {
             architecture: metadata.architecture,
             compression: extracted.as_ref().and_then(|kernel| compression_name(&kernel.compression)),
         },
-        symbols: SymbolSummary::default(),
+        symbols,
         validation: ValidationSummary::default(),
     })
 }
