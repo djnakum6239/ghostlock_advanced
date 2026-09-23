@@ -92,6 +92,7 @@ pub fn analyze_image(data: &[u8]) -> Result<AnalysisReport> {
         image,
         kernel: KernelSummary {
             release: metadata.release,
+            build_id: metadata.build_id,
             architecture: metadata.architecture,
             compression: extracted.as_ref().and_then(|kernel| compression_name(&kernel.compression)),
         },
