@@ -28,10 +28,7 @@ fn run_failure(command: &str, args: &[&str]) {
         .args(args)
         .output()
         .unwrap();
-    assert!(
-        !output.status.success(),
-        "{command} unexpectedly succeeded"
-    );
+    assert!(!output.status.success(), "{command} unexpectedly succeeded");
 }
 
 fn boot_image() -> Vec<u8> {
