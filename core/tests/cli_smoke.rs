@@ -146,7 +146,11 @@ fn exercises_all_cli_commands() {
     run("analyze-xbl-config", &[xbl.to_str().unwrap()]);
     run("validate-offsets", &[offsets.to_str().unwrap()]);
     run_failure("analyze-ota-entry", &[ota.to_str().unwrap(), "missing.img"]);
-    run_failure("analyze-kernel", &[temp.join("missing-kernel.img").to_str().unwrap()]);
+    let missing_kernel = std::env::temp_dir().join(format!(
+        "uka-cli-smoke-missing-kernel-{}",
+        std::process::id()
+    ));
+    run_failure("analyze-kernel", &[missing_kernel.to_str().unwrap()]);
 
     for path in [
         boot, kernel, payload, dtb, elf, btf, sparse, xbl, offsets, ota,
