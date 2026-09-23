@@ -313,8 +313,8 @@ mod tests {
         kernel[20..24].copy_from_slice(&[1, 2, 3, 0]);
         kernel[24..42].copy_from_slice(b"A\0B\0C\0D\0E\0F\0G\0H\0I\0");
         for index in 0..256usize {
-            let value = (index.min(15) * 2) as u16;
-            let offset = 40 + index * 2;
+            let value = (index.min(8) * 2) as u16;
+            let offset = 42 + index * 2;
             kernel[offset..offset + 2].copy_from_slice(&value.to_le_bytes());
         }
         assert!(looks_like_token_index(&kernel, 42));
