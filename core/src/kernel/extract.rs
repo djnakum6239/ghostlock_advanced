@@ -76,6 +76,21 @@ mod tests {
     use super::*;
 
     #[test]
+    fn decompresses_gzip_kernel() {
+        use std::io::Write;
+        let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+        encoder.write_all(b"Linux version 5.4.254").unwrap();
+        let compressed = encoder.finish().unwrap();
+        let output = decompress_kernel(&compressed, &CompressionKind::Gzip).unwrap();
+        assert_eq!(output, b"Linux version 5.4.254");
+    }
+
+    #[test]
+    fn rejects_unsupported_lzop_decompression() {
+        assert!(decompress_kernel(b"data", &CompressionKind::Lzop).is_err());
+    }
+
+    #[test]
     fn detects_common_kernel_compression_signatures() {
         assert_eq!(detect_compression(&[0x1f, 0x8b]), CompressionKind::Gzip);
         assert_eq!(detect_compression(&[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]), CompressionKind::Xz);
