@@ -32,10 +32,10 @@ pub fn analyze_input(data: &[u8]) -> Result<AnalysisResult> {
             ContainerKind::PayloadBin => Ok(AnalysisResult::Payload(parse_payload_header(data)?)),
         };
     }
-    if data.starts_with(b"\\x7fELF") {
+    if data.starts_with(b"\x7fELF") {
         return Ok(AnalysisResult::Elf(parse_elf_header(data)?));
     }
-    if data.len() >= 4 && data[..4] == [0xd0, 0x0b, 0xb0, 0x0d] {
+    if data.len() >= 4 && data[..4] == [0xd0, 0x0d, 0xfe, 0xed] {
         return Ok(AnalysisResult::Dtb(parse_dtb_header(data)?));
     }
     if data.len() >= 2 && data[..2] == [0x9f, 0xeb] {
