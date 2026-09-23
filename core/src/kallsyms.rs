@@ -49,7 +49,7 @@ fn looks_like_token_index(data: &[u8], offset: usize) -> Option<usize> {
     if previous == 0 || distinct < 8 {
         return None;
     }
-    Some(previous as usize)
+    Some(previous as usize + 1)
 }
 
 fn monotonic_addresses(data: &[u8], start: usize, count: usize, width: usize) -> bool {
