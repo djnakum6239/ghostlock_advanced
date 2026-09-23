@@ -49,7 +49,7 @@ fn check_table(offset: u64, entry_size: u16, count: u16, len: usize) -> Result<(
 
 /// Parses an ELF32/ELF64 little-endian header and validates table bounds.
 pub fn parse_elf_header(data: &[u8]) -> Result<ElfHeader> {
-    if data.len() < 20 || &data[..4] != b"\\x7fELF" {
+    if data.len() < 20 || &data[..4] != b"\x7fELF" {
         bail!("invalid ELF header");
     }
     let class = data[4];
@@ -103,7 +103,7 @@ mod tests {
     #[test]
     fn parses_elf64_header() {
         let mut data = vec![0u8; 64];
-        data[..4].copy_from_slice(b"\\x7fELF");
+        data[..4].copy_from_slice(b"\x7fELF");
         data[4] = 2;
         data[5] = 1;
         data[18..20].copy_from_slice(&183u16.to_le_bytes());
