@@ -1,3 +1,4 @@
+pub mod containers;
 pub mod model;
 pub mod boot;
 pub mod vendor_boot;
