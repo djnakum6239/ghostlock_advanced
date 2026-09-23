@@ -22,22 +22,30 @@ pub struct KallsymsCandidate {
 /// Candidate scanner entry point. The implementation deliberately separates
 /// discovery from validation so old kernels do not depend on one fixed layout.
 fn read_u16_le(data: &[u8], offset: usize) -> Option<u16> {
-    Some(u16::from_le_bytes(data.get(offset..offset + 2)?.try_into().ok()?))
+    Some(u16::from_le_bytes(
+        data.get(offset..offset + 2)?.try_into().ok()?,
+    ))
 }
 
 fn read_u32_le(data: &[u8], offset: usize) -> Option<u32> {
-    Some(u32::from_le_bytes(data.get(offset..offset + 4)?.try_into().ok()?))
+    Some(u32::from_le_bytes(
+        data.get(offset..offset + 4)?.try_into().ok()?,
+    ))
 }
 
 fn read_u64_le(data: &[u8], offset: usize) -> Option<u64> {
-    Some(u64::from_le_bytes(data.get(offset..offset + 8)?.try_into().ok()?))
+    Some(u64::from_le_bytes(
+        data.get(offset..offset + 8)?.try_into().ok()?,
+    ))
 }
 
 fn looks_like_token_index(data: &[u8], offset: usize) -> bool {
     let mut previous = 0u16;
     let mut distinct = 0usize;
     for index in 0..256 {
-        let Some(value) = read_u16_le(data, offset + index * 2) else { return false; };
+        let Some(value) = read_u16_le(data, offset + index * 2) else {
+            return false;
+        };
         if index > 0 && value < previous {
             return false;
         }
@@ -66,7 +74,12 @@ fn valid_token_table(data: &[u8], start: usize, end: usize) -> bool {
             return false;
         };
         let token = &data[token_start..token_start + token_end];
-        if token.is_empty() || token.len() > 255 || token.iter().any(|byte| !byte.is_ascii_graphic() && *byte != b' ') {
+        if token.is_empty()
+            || token.len() > 255
+            || token
+                .iter()
+                .any(|byte| !byte.is_ascii_graphic() && *byte != b' ')
+        {
             return false;
         }
     }
@@ -89,7 +102,10 @@ fn monotonic_addresses(data: &[u8], start: usize, count: usize, width: usize) ->
         _ => return false,
     };
     for index in 1..count {
-        let offset = match index.checked_mul(width).and_then(|value| start.checked_add(value)) {
+        let offset = match index
+            .checked_mul(width)
+            .and_then(|value| start.checked_add(value))
+        {
             Some(value) => value,
             None => return false,
         };
@@ -128,8 +144,12 @@ pub fn decode_symbol_name(
     let mut expanded = Vec::new();
     for &token in compressed {
         let index = token as usize * 2;
-        let token_offset = u16::from_le_bytes(token_index.get(index..index + 2)?.try_into().ok()?) as usize;
-        let token_bytes = token_table.get(token_offset..)?.split(|&byte| byte == 0).next()?;
+        let token_offset =
+            u16::from_le_bytes(token_index.get(index..index + 2)?.try_into().ok()?) as usize;
+        let token_bytes = token_table
+            .get(token_offset..)?
+            .split(|&byte| byte == 0)
+            .next()?;
         expanded.extend_from_slice(token_bytes);
     }
 
@@ -186,19 +206,30 @@ pub fn scan_candidates(kernel: &[u8]) -> Vec<KallsymsCandidate> {
         let mut num_syms_offset = token_table_start.saturating_sub(4);
         while num_syms_offset >= search_start && candidates.len() < MAX_CANDIDATES {
             let Some(num_syms) = read_u32_le(kernel, num_syms_offset).map(|v| v as usize) else {
-                if num_syms_offset < 4 { break; }
+                if num_syms_offset < 4 {
+                    break;
+                }
                 num_syms_offset -= 4;
                 continue;
             };
             if !(2..=MAX_SYMBOLS).contains(&num_syms) {
-                if num_syms_offset < 4 { break; }
+                if num_syms_offset < 4 {
+                    break;
+                }
                 num_syms_offset -= 4;
                 continue;
             }
 
-            for (width, address_mode) in [(8usize, AddressMode::Absolute), (4usize, AddressMode::Relative)] {
-                let Some(address_bytes) = num_syms.checked_mul(width) else { continue; };
-                let Some(address_start) = num_syms_offset.checked_sub(address_bytes) else { continue; };
+            for (width, address_mode) in [
+                (8usize, AddressMode::Absolute),
+                (4usize, AddressMode::Relative),
+            ] {
+                let Some(address_bytes) = num_syms.checked_mul(width) else {
+                    continue;
+                };
+                let Some(address_start) = num_syms_offset.checked_sub(address_bytes) else {
+                    continue;
+                };
                 if address_start < search_start || num_syms_offset > token_table_start {
                     continue;
                 }

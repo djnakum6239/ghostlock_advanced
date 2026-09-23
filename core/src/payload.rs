@@ -14,12 +14,16 @@ pub struct PayloadHeader {
 }
 
 fn read_u32_be(data: &[u8], offset: usize) -> Result<u32> {
-    let bytes = data.get(offset..offset + 4).ok_or_else(|| anyhow::anyhow!("payload header is truncated"))?;
+    let bytes = data
+        .get(offset..offset + 4)
+        .ok_or_else(|| anyhow::anyhow!("payload header is truncated"))?;
     Ok(u32::from_be_bytes(bytes.try_into().unwrap()))
 }
 
 fn read_u64_be(data: &[u8], offset: usize) -> Result<u64> {
-    let bytes = data.get(offset..offset + 8).ok_or_else(|| anyhow::anyhow!("payload header is truncated"))?;
+    let bytes = data
+        .get(offset..offset + 8)
+        .ok_or_else(|| anyhow::anyhow!("payload header is truncated"))?;
     Ok(u64::from_be_bytes(bytes.try_into().unwrap()))
 }
 

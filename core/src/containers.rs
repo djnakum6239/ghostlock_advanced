@@ -11,7 +11,10 @@ pub fn detect_container_kind(data: &[u8]) -> Result<ContainerKind> {
     if data.starts_with(b"CrAU") {
         return Ok(ContainerKind::PayloadBin);
     }
-    if data.starts_with(b"PK\x03\x04") || data.starts_with(b"PK\x05\x06") || data.starts_with(b"PK\x07\x08") {
+    if data.starts_with(b"PK\x03\x04")
+        || data.starts_with(b"PK\x05\x06")
+        || data.starts_with(b"PK\x07\x08")
+    {
         return Ok(ContainerKind::OtaZip);
     }
     bail!("unknown container format")
@@ -23,13 +26,25 @@ mod tests {
 
     #[test]
     fn detects_payload_container() {
-        assert_eq!(detect_container_kind(b"CrAU").unwrap(), ContainerKind::PayloadBin);
+        assert_eq!(
+            detect_container_kind(b"CrAU").unwrap(),
+            ContainerKind::PayloadBin
+        );
     }
 
     #[test]
     fn detects_zip_variants() {
-        assert_eq!(detect_container_kind(b"PK\x03\x04").unwrap(), ContainerKind::OtaZip);
-        assert_eq!(detect_container_kind(b"PK\x05\x06").unwrap(), ContainerKind::OtaZip);
-        assert_eq!(detect_container_kind(b"PK\x07\x08").unwrap(), ContainerKind::OtaZip);
+        assert_eq!(
+            detect_container_kind(b"PK\x03\x04").unwrap(),
+            ContainerKind::OtaZip
+        );
+        assert_eq!(
+            detect_container_kind(b"PK\x05\x06").unwrap(),
+            ContainerKind::OtaZip
+        );
+        assert_eq!(
+            detect_container_kind(b"PK\x07\x08").unwrap(),
+            ContainerKind::OtaZip
+        );
     }
 }

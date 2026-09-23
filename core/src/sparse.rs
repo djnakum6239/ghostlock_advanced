@@ -17,12 +17,16 @@ pub struct SparseHeader {
 }
 
 fn read_u16_le(data: &[u8], offset: usize) -> Result<u16> {
-    let bytes = data.get(offset..offset + 2).ok_or_else(|| anyhow::anyhow!("sparse header is truncated"))?;
+    let bytes = data
+        .get(offset..offset + 2)
+        .ok_or_else(|| anyhow::anyhow!("sparse header is truncated"))?;
     Ok(u16::from_le_bytes(bytes.try_into().unwrap()))
 }
 
 fn read_u32_le(data: &[u8], offset: usize) -> Result<u32> {
-    let bytes = data.get(offset..offset + 4).ok_or_else(|| anyhow::anyhow!("sparse header is truncated"))?;
+    let bytes = data
+        .get(offset..offset + 4)
+        .ok_or_else(|| anyhow::anyhow!("sparse header is truncated"))?;
     Ok(u32::from_le_bytes(bytes.try_into().unwrap()))
 }
 

@@ -35,7 +35,9 @@ pub fn inspect_ota_zip(data: &[u8]) -> Result<OtaZipSummary> {
         summary.has_vendor_boot |= name == "vendor_boot.img" || name.ends_with("/vendor_boot.img");
         summary.has_init_boot |= name == "init_boot.img" || name.ends_with("/init_boot.img");
         summary.has_xbl_config |= name == "xbl_config.img" || name.ends_with("/xbl_config.img");
-        if name == "META-INF/com/android/metadata" || name.ends_with("/META-INF/com/android/metadata") {
+        if name == "META-INF/com/android/metadata"
+            || name.ends_with("/META-INF/com/android/metadata")
+        {
             summary.metadata_entries += 1;
         }
     }
@@ -82,7 +84,10 @@ mod tests {
 
         let summary = inspect_ota_zip(bytes.get_ref()).unwrap();
         assert_eq!(summary.entries, 6);
-        assert_eq!(read_ota_entry(bytes.get_ref(), "boot.img").unwrap(), b"test");
+        assert_eq!(
+            read_ota_entry(bytes.get_ref(), "boot.img").unwrap(),
+            b"test"
+        );
         assert!(summary.has_payload);
         assert!(summary.has_boot);
         assert!(summary.has_vendor_boot);

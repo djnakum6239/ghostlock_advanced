@@ -28,7 +28,15 @@ pub fn parse_offsets_json(input: &str) -> Result<OffsetDocument> {
 }
 
 pub fn matches_kernel(doc: &OffsetDocument, release: Option<&str>, build_id: Option<&str>) -> bool {
-    let release_ok = doc.kernel.release.as_deref().map_or(true, |v| Some(v) == release);
-    let build_ok = doc.kernel.build_id.as_deref().map_or(true, |v| Some(v) == build_id);
+    let release_ok = doc
+        .kernel
+        .release
+        .as_deref()
+        .map_or(true, |v| Some(v) == release);
+    let build_ok = doc
+        .kernel
+        .build_id
+        .as_deref()
+        .map_or(true, |v| Some(v) == build_id);
     release_ok && build_ok
 }

@@ -1,13 +1,24 @@
+use crate::{
+    boot::parse_boot_image,
+    init_boot::parse_init_boot_image,
+    model::{CompressionKind, ExtractedKernel, ImageKind},
+    vendor_boot::parse_vendor_boot_image,
+};
 use anyhow::{bail, Result};
 use std::io::Read;
-use crate::{boot::parse_boot_image, init_boot::parse_init_boot_image, model::{CompressionKind, ExtractedKernel, ImageKind}, vendor_boot::parse_vendor_boot_image};
 
 fn detect_compression(data: &[u8]) -> CompressionKind {
-    if data.starts_with(&[0x1f, 0x8b]) { CompressionKind::Gzip }
-    else if data.starts_with(&[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]) { CompressionKind::Xz }
-    else if data.starts_with(&[0x04, 0x22, 0x4d, 0x18]) { CompressionKind::Lz4 }
-    else if data.starts_with(&[0x28, 0xb5, 0x2f, 0xfd]) { CompressionKind::Zstd }
-    else { CompressionKind::None }
+    if data.starts_with(&[0x1f, 0x8b]) {
+        CompressionKind::Gzip
+    } else if data.starts_with(&[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]) {
+        CompressionKind::Xz
+    } else if data.starts_with(&[0x04, 0x22, 0x4d, 0x18]) {
+        CompressionKind::Lz4
+    } else if data.starts_with(&[0x28, 0xb5, 0x2f, 0xfd]) {
+        CompressionKind::Zstd
+    } else {
+        CompressionKind::None
+    }
 }
 
 /// Decompresses a supported kernel payload into its uncompressed byte stream.
@@ -66,10 +77,14 @@ pub fn extract_kernel(data: &[u8]) -> Result<ExtractedKernel> {
             let _image = parse_vendor_boot_image(data)?;
             bail!("vendor_boot does not contain the Android kernel payload; use boot.img")
         }
-        _ => Ok(ExtractedKernel { source: ImageKind::RawKernel, data: data.to_vec(), source_offset: Some(0), compression: detect_compression(data) }),
+        _ => Ok(ExtractedKernel {
+            source: ImageKind::RawKernel,
+            data: data.to_vec(),
+            source_offset: Some(0),
+            compression: detect_compression(data),
+        }),
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -93,9 +108,18 @@ mod tests {
     #[test]
     fn detects_common_kernel_compression_signatures() {
         assert_eq!(detect_compression(&[0x1f, 0x8b]), CompressionKind::Gzip);
-        assert_eq!(detect_compression(&[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]), CompressionKind::Xz);
-        assert_eq!(detect_compression(&[0x04, 0x22, 0x4d, 0x18]), CompressionKind::Lz4);
-        assert_eq!(detect_compression(&[0x28, 0xb5, 0x2f, 0xfd]), CompressionKind::Zstd);
+        assert_eq!(
+            detect_compression(&[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]),
+            CompressionKind::Xz
+        );
+        assert_eq!(
+            detect_compression(&[0x04, 0x22, 0x4d, 0x18]),
+            CompressionKind::Lz4
+        );
+        assert_eq!(
+            detect_compression(&[0x28, 0xb5, 0x2f, 0xfd]),
+            CompressionKind::Zstd
+        );
         assert_eq!(detect_compression(b"ELF"), CompressionKind::None);
     }
 

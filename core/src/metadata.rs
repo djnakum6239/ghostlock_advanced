@@ -31,7 +31,10 @@ pub fn detect_architecture(kernel: &[u8]) -> Option<&'static str> {
 /// Extracts the Linux release from an embedded version banner.
 pub fn detect_release(kernel: &[u8]) -> Option<String> {
     const PREFIX: &[u8] = b"Linux version ";
-    let start = kernel.windows(PREFIX.len()).position(|window| window == PREFIX)? + PREFIX.len();
+    let start = kernel
+        .windows(PREFIX.len())
+        .position(|window| window == PREFIX)?
+        + PREFIX.len();
     let rest = &kernel[start..];
     let end = rest
         .iter()
@@ -44,9 +47,9 @@ pub fn detect_release(kernel: &[u8]) -> Option<String> {
     let version_core = release.split_once('-').map_or(release, |(core, _)| core);
     let components: Vec<&str> = version_core.split('.').collect();
     if components.len() < 2
-        || components
-            .iter()
-            .any(|component| component.is_empty() || !component.bytes().all(|byte| byte.is_ascii_digit()))
+        || components.iter().any(|component| {
+            component.is_empty() || !component.bytes().all(|byte| byte.is_ascii_digit())
+        })
     {
         return None;
     }
@@ -64,7 +67,10 @@ pub fn detect_compiler(kernel: &[u8]) -> Option<String> {
     const PREFIXES: [&[u8]; 2] = [b"gcc version ", b"clang version "];
 
     for prefix in PREFIXES {
-        let start = match kernel.windows(prefix.len()).position(|window| window == prefix) {
+        let start = match kernel
+            .windows(prefix.len())
+            .position(|window| window == prefix)
+        {
             Some(position) => position + prefix.len(),
             None => continue,
         };
@@ -84,7 +90,6 @@ pub fn detect_compiler(kernel: &[u8]) -> Option<String> {
 
     None
 }
-
 
 /// Extracts a GNU build ID from PT_NOTE segments in a little-endian ELF image.
 pub fn detect_build_id(kernel: &[u8]) -> Option<String> {
@@ -172,15 +177,21 @@ pub fn detect_build_id(kernel: &[u8]) -> Option<String> {
 }
 
 fn read_u16_le(data: &[u8], offset: usize) -> Option<u16> {
-    Some(u16::from_le_bytes(data.get(offset..offset + 2)?.try_into().ok()?))
+    Some(u16::from_le_bytes(
+        data.get(offset..offset + 2)?.try_into().ok()?,
+    ))
 }
 
 fn read_u32_le(data: &[u8], offset: usize) -> Option<u32> {
-    Some(u32::from_le_bytes(data.get(offset..offset + 4)?.try_into().ok()?))
+    Some(u32::from_le_bytes(
+        data.get(offset..offset + 4)?.try_into().ok()?,
+    ))
 }
 
 fn read_u64_le(data: &[u8], offset: usize) -> Option<u64> {
-    Some(u64::from_le_bytes(data.get(offset..offset + 8)?.try_into().ok()?))
+    Some(u64::from_le_bytes(
+        data.get(offset..offset + 8)?.try_into().ok()?,
+    ))
 }
 
 fn align4(value: usize) -> Option<usize> {
@@ -227,7 +238,10 @@ mod tests {
     #[test]
     fn detects_linux_release_banner() {
         let kernel = b"prefix Linux version 5.4.254-qgki-gd8141a929274 #1 SMP PREEMPT";
-        assert_eq!(detect_release(kernel).as_deref(), Some("5.4.254-qgki-gd8141a929274"));
+        assert_eq!(
+            detect_release(kernel).as_deref(),
+            Some("5.4.254-qgki-gd8141a929274")
+        );
     }
 
     #[test]
@@ -237,7 +251,10 @@ mod tests {
         assert_eq!(detect_release(b"Linux version android-kernel"), None);
         assert_eq!(detect_release(b"Linux version 5..4.254"), None);
         assert_eq!(detect_release(b"Linux version 5"), None);
-        assert_eq!(detect_release(b"Linux version 5.4.254-rc1"), Some("5.4.254-rc1".to_owned()));
+        assert_eq!(
+            detect_release(b"Linux version 5.4.254-rc1"),
+            Some("5.4.254-rc1".to_owned())
+        );
     }
 
     #[test]
@@ -259,9 +276,8 @@ mod tests {
         elf[136..140].copy_from_slice(&3u32.to_le_bytes());
         elf[140..144].copy_from_slice(b"GNU\0");
         elf[144..164].copy_from_slice(&[
-            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
-            0x10, 0x32, 0x54, 0x76, 0x98, 0xba, 0xdc, 0xfe,
-            0x11, 0x22, 0x33, 0x44,
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x10, 0x32, 0x54, 0x76, 0x98, 0xba,
+            0xdc, 0xfe, 0x11, 0x22, 0x33, 0x44,
         ]);
 
         assert_eq!(
@@ -281,8 +297,14 @@ mod tests {
 
     #[test]
     fn detects_gcc_and_clang_versions() {
-        assert_eq!(detect_compiler(b"built with gcc version 12.3.0 (GCC)"), Some("12.3.0".to_owned()));
-        assert_eq!(detect_compiler(b"built with clang version 18.1.8"), Some("18.1.8".to_owned()));
+        assert_eq!(
+            detect_compiler(b"built with gcc version 12.3.0 (GCC)"),
+            Some("12.3.0".to_owned())
+        );
+        assert_eq!(
+            detect_compiler(b"built with clang version 18.1.8"),
+            Some("18.1.8".to_owned())
+        );
     }
 
     #[test]
@@ -295,12 +317,13 @@ mod tests {
     fn combines_detected_kernel_metadata() {
         let kernel = b"Linux version 5.4.254-qgki-gd8141a929274 #1 gcc version 12.3.0";
         let metadata = super::detect_metadata(kernel);
-        assert_eq!(metadata.release.as_deref(), Some("5.4.254-qgki-gd8141a929274"));
+        assert_eq!(
+            metadata.release.as_deref(),
+            Some("5.4.254-qgki-gd8141a929274")
+        );
         assert_eq!(metadata.build_id, None);
         assert_eq!(metadata.compiler.as_deref(), Some("12.3.0"));
         assert_eq!(metadata.architecture, None);
         assert!(!metadata.btf_present);
     }
-
-
 }

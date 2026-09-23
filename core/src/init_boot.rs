@@ -1,5 +1,5 @@
-use anyhow::{bail, Result};
 use crate::model::{ImageKind, InitBootImage};
+use anyhow::{bail, Result};
 
 const MAGIC: &[u8; 8] = b"ANDROID!";
 const PAGE_SIZE: usize = 4096;
@@ -7,8 +7,12 @@ const HEADER_SIZE_V4: u32 = 1584;
 const BOOT_SIGNATURE_SIZE_OFFSET: usize = 1580;
 
 fn read_u32(data: &[u8], offset: usize) -> Result<u32> {
-    let end = offset.checked_add(4).ok_or_else(|| anyhow::anyhow!("offset overflow"))?;
-    let bytes = data.get(offset..end).ok_or_else(|| anyhow::anyhow!("truncated init_boot header"))?;
+    let end = offset
+        .checked_add(4)
+        .ok_or_else(|| anyhow::anyhow!("offset overflow"))?;
+    let bytes = data
+        .get(offset..end)
+        .ok_or_else(|| anyhow::anyhow!("truncated init_boot header"))?;
     Ok(u32::from_le_bytes(bytes.try_into()?))
 }
 

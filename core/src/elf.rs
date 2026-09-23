@@ -17,17 +17,23 @@ pub struct ElfHeader {
 }
 
 fn read_u16_le(data: &[u8], offset: usize) -> Result<u16> {
-    let bytes = data.get(offset..offset + 2).ok_or_else(|| anyhow::anyhow!("ELF header is truncated"))?;
+    let bytes = data
+        .get(offset..offset + 2)
+        .ok_or_else(|| anyhow::anyhow!("ELF header is truncated"))?;
     Ok(u16::from_le_bytes(bytes.try_into().unwrap()))
 }
 
 fn read_u32_le(data: &[u8], offset: usize) -> Result<u32> {
-    let bytes = data.get(offset..offset + 4).ok_or_else(|| anyhow::anyhow!("ELF header is truncated"))?;
+    let bytes = data
+        .get(offset..offset + 4)
+        .ok_or_else(|| anyhow::anyhow!("ELF header is truncated"))?;
     Ok(u32::from_le_bytes(bytes.try_into().unwrap()))
 }
 
 fn read_u64_le(data: &[u8], offset: usize) -> Result<u64> {
-    let bytes = data.get(offset..offset + 8).ok_or_else(|| anyhow::anyhow!("ELF header is truncated"))?;
+    let bytes = data
+        .get(offset..offset + 8)
+        .ok_or_else(|| anyhow::anyhow!("ELF header is truncated"))?;
     Ok(u64::from_le_bytes(bytes.try_into().unwrap()))
 }
 
@@ -60,18 +66,32 @@ pub fn parse_elf_header(data: &[u8]) -> Result<ElfHeader> {
 
     let machine = read_u16_le(data, 18)?;
     let (entry, phoff, shoff, phentsize, phnum, shentsize, shnum, shstrndx) = if class == 2 {
-        if data.len() < 64 { bail!("ELF64 header is truncated"); }
+        if data.len() < 64 {
+            bail!("ELF64 header is truncated");
+        }
         (
-            read_u64_le(data, 24)?, read_u64_le(data, 32)?, read_u64_le(data, 40)?,
-            read_u16_le(data, 54)?, read_u16_le(data, 56)?, read_u16_le(data, 58)?,
-            read_u16_le(data, 60)?, read_u16_le(data, 62)?,
+            read_u64_le(data, 24)?,
+            read_u64_le(data, 32)?,
+            read_u64_le(data, 40)?,
+            read_u16_le(data, 54)?,
+            read_u16_le(data, 56)?,
+            read_u16_le(data, 58)?,
+            read_u16_le(data, 60)?,
+            read_u16_le(data, 62)?,
         )
     } else {
-        if data.len() < 52 { bail!("ELF32 header is truncated"); }
+        if data.len() < 52 {
+            bail!("ELF32 header is truncated");
+        }
         (
-            u64::from(read_u32_le(data, 24)?), u64::from(read_u32_le(data, 28)?), u64::from(read_u32_le(data, 32)?),
-            read_u16_le(data, 42)?, read_u16_le(data, 44)?, read_u16_le(data, 46)?,
-            read_u16_le(data, 48)?, read_u16_le(data, 50)?,
+            u64::from(read_u32_le(data, 24)?),
+            u64::from(read_u32_le(data, 28)?),
+            u64::from(read_u32_le(data, 32)?),
+            read_u16_le(data, 42)?,
+            read_u16_le(data, 44)?,
+            read_u16_le(data, 46)?,
+            read_u16_le(data, 48)?,
+            read_u16_le(data, 50)?,
         )
     };
 

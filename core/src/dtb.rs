@@ -18,7 +18,9 @@ pub struct DtbHeader {
 }
 
 fn read_u32_be(data: &[u8], offset: usize) -> Result<u32> {
-    let bytes = data.get(offset..offset + 4).ok_or_else(|| anyhow::anyhow!("DTB header is truncated"))?;
+    let bytes = data
+        .get(offset..offset + 4)
+        .ok_or_else(|| anyhow::anyhow!("DTB header is truncated"))?;
     Ok(u32::from_be_bytes(bytes.try_into().unwrap()))
 }
 
@@ -50,7 +52,9 @@ pub fn parse_dtb_header(data: &[u8]) -> Result<DtbHeader> {
     let total = header.total_size as usize;
     let check_region = |offset: u32, size: u32| -> Result<()> {
         let start = offset as usize;
-        let end = start.checked_add(size as usize).ok_or_else(|| anyhow::anyhow!("DTB region overflow"))?;
+        let end = start
+            .checked_add(size as usize)
+            .ok_or_else(|| anyhow::anyhow!("DTB region overflow"))?;
         if start < HEADER_SIZE || end > total {
             bail!("DTB region is outside image");
         }

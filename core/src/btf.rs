@@ -16,12 +16,16 @@ pub struct BtfHeader {
 }
 
 fn read_u16_le(data: &[u8], offset: usize) -> Result<u16> {
-    let bytes = data.get(offset..offset + 2).ok_or_else(|| anyhow::anyhow!("BTF header is truncated"))?;
+    let bytes = data
+        .get(offset..offset + 2)
+        .ok_or_else(|| anyhow::anyhow!("BTF header is truncated"))?;
     Ok(u16::from_le_bytes(bytes.try_into().unwrap()))
 }
 
 fn read_u32_le(data: &[u8], offset: usize) -> Result<u32> {
-    let bytes = data.get(offset..offset + 4).ok_or_else(|| anyhow::anyhow!("BTF header is truncated"))?;
+    let bytes = data
+        .get(offset..offset + 4)
+        .ok_or_else(|| anyhow::anyhow!("BTF header is truncated"))?;
     Ok(u32::from_le_bytes(bytes.try_into().unwrap()))
 }
 
@@ -49,8 +53,12 @@ pub fn parse_btf_header(data: &[u8]) -> Result<BtfHeader> {
         bail!("BTF header extends beyond input");
     }
     let check_region = |offset: u32, length: u32| -> Result<()> {
-        let start = header_end.checked_add(offset as usize).ok_or_else(|| anyhow::anyhow!("BTF region overflow"))?;
-        let end = start.checked_add(length as usize).ok_or_else(|| anyhow::anyhow!("BTF region overflow"))?;
+        let start = header_end
+            .checked_add(offset as usize)
+            .ok_or_else(|| anyhow::anyhow!("BTF region overflow"))?;
+        let end = start
+            .checked_add(length as usize)
+            .ok_or_else(|| anyhow::anyhow!("BTF region overflow"))?;
         if end > data.len() {
             bail!("BTF region extends beyond input");
         }

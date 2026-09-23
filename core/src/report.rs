@@ -3,12 +3,13 @@ use anyhow::Result;
 use crate::{
     android_images::detect_image_kind,
     kallsyms::scan_candidates,
-    ota_zip::read_ota_entry,
     kernel::{decompress_kernel, extract_kernel},
     metadata::detect_metadata,
     model::{
-        AnalysisReport, ImageKind, ImageSummary, KernelSummary, ReportProvenance, SymbolSummary, ValidationSummary,
+        AnalysisReport, ImageKind, ImageSummary, KernelSummary, ReportProvenance, SymbolSummary,
+        ValidationSummary,
     },
+    ota_zip::read_ota_entry,
 };
 
 fn compression_name(kind: &crate::model::CompressionKind) -> Option<String> {
@@ -54,7 +55,11 @@ pub fn analyze_image(data: &[u8]) -> Result<AnalysisReport> {
                 .unwrap_or_default();
             (metadata, symbols, validation)
         }
-        None => (crate::metadata::KernelMetadata::default(), SymbolSummary::default(), ValidationSummary::default()),
+        None => (
+            crate::metadata::KernelMetadata::default(),
+            SymbolSummary::default(),
+            ValidationSummary::default(),
+        ),
     };
 
     let image = match detected {
@@ -101,7 +106,9 @@ pub fn analyze_image(data: &[u8]) -> Result<AnalysisReport> {
             release: metadata.release,
             build_id: metadata.build_id,
             architecture: metadata.architecture,
-            compression: extracted.as_ref().and_then(|kernel| compression_name(&kernel.compression)),
+            compression: extracted
+                .as_ref()
+                .and_then(|kernel| compression_name(&kernel.compression)),
         },
         symbols,
         validation,
@@ -177,11 +184,16 @@ mod tests {
     fn reports_metadata_from_compressed_kernel() {
         use std::io::Write;
         let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
-        encoder.write_all(b"Linux version 5.4.254-qgki-gd8141a929274 #1").unwrap();
+        encoder
+            .write_all(b"Linux version 5.4.254-qgki-gd8141a929274 #1")
+            .unwrap();
         let compressed = encoder.finish().unwrap();
         let report = analyze_image(&compressed).unwrap();
         assert_eq!(report.kernel.compression.as_deref(), Some("gzip"));
-        assert_eq!(report.kernel.release.as_deref(), Some("5.4.254-qgki-gd8141a929274"));
+        assert_eq!(
+            report.kernel.release.as_deref(),
+            Some("5.4.254-qgki-gd8141a929274")
+        );
     }
 
     #[test]
