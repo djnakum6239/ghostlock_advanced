@@ -46,7 +46,7 @@ pub fn analyze_input(data: &[u8]) -> Result<AnalysisResult> {
     if data.len() >= 4 && data[..4] == [0x3a, 0xff, 0x26, 0xed] {
         return Ok(AnalysisResult::Sparse(parse_sparse_header(data)?));
     }
-    if data.windows(9).any(|window| window == b"xbl_config") {
+    if data.starts_with(b"xbl_config") || data.windows(b"xbl_config".len()).any(|window| window == b"xbl_config") {
         return Ok(AnalysisResult::XblConfig(inspect_xbl_config(data)?));
     }
     if data.is_empty() {
@@ -68,7 +68,6 @@ mod tests {
         assert!(matches!(analyze_input(&data).unwrap(), AnalysisResult::Payload(_)));
     }
 
-    #[test]
     #[test]
     fn dispatches_xbl_metadata_marker() {
         let data = b"xbl_config\0platform=sm7325\0";
