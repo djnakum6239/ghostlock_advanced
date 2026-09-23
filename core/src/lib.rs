@@ -1,3 +1,4 @@
+pub mod dtb;
 pub mod containers;
 pub mod model;
 pub mod boot;
