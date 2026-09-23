@@ -1,3 +1,3 @@
 pub mod extract;
 
-pub use extract::extract_kernel;
+pub use extract::{decompress_kernel, extract_kernel};
