@@ -37,7 +37,7 @@ mod tests {
     #[test]
     fn detects_elf_machine_architecture() {
         let mut elf = vec![0u8; 20];
-        elf[..4].copy_from_slice(b"\\x7fELF");
+        elf[..4].copy_from_slice(b"\x7fELF");
         elf[4] = 2;
         elf[5] = 1;
         elf[18..20].copy_from_slice(&0xb7u16.to_le_bytes());
@@ -52,7 +52,7 @@ mod tests {
     fn rejects_unknown_or_truncated_elf() {
         assert_eq!(detect_architecture(&[0x7f, b'E', b'L', b'F']), None);
         let mut elf = vec![0u8; 20];
-        elf[..4].copy_from_slice(b"\\x7fELF");
+        elf[..4].copy_from_slice(b"\x7fELF");
         elf[4] = 2;
         elf[5] = 1;
         assert_eq!(detect_architecture(&elf), Some("elf"));
