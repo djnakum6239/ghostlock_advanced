@@ -38,11 +38,15 @@ pub fn detect_release(kernel: &[u8]) -> Option<String> {
         return None;
     }
     let release = std::str::from_utf8(&rest[..end]).ok()?;
-    if release.bytes().all(|byte| byte.is_ascii_graphic()) {
-        Some(release.to_owned())
-    } else {
-        None
+    let mut parts = release.split('.');
+    let first = parts.next()?;
+    if first.is_empty() || !first.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
     }
+    if !release.bytes().all(|byte| byte.is_ascii_alphanumeric() || b".-+_~".contains(&byte)) {
+        return None;
+    }
+    Some(release.to_owned())
 }
 
 /// Extracts a compiler identifier from a Linux kernel's embedded build strings.
@@ -220,6 +224,8 @@ mod tests {
     fn rejects_malformed_linux_release_banner() {
         assert_eq!(detect_release(b"Linux version "), None);
         assert_eq!(detect_release(b"Linux version \xff"), None);
+        assert_eq!(detect_release(b"Linux version android-kernel"), None);
+        assert_eq!(detect_release(b"Linux version 5.4.254 bad"), None);
     }
 
     #[test]
