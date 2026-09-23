@@ -1,4 +1,4 @@
-use std::io::Cursor;
+use std::io::{Cursor, Read};
 
 use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
@@ -41,6 +41,17 @@ pub fn inspect_ota_zip(data: &[u8]) -> Result<OtaZipSummary> {
     }
 
     Ok(summary)
+}
+
+/// Reads a named OTA ZIP entry into memory without writing it to disk or executing it.
+pub fn read_ota_entry(data: &[u8], entry_name: &str) -> Result<Vec<u8>> {
+    let mut archive = ZipArchive::new(Cursor::new(data))?;
+    let mut entry = archive
+        .by_name(entry_name)
+        .map_err(|_| anyhow::anyhow!("OTA entry not found: {entry_name}"))?;
+    let mut output = Vec::new();
+    entry.read_to_end(&mut output)?;
+    Ok(output)
 }
 
 #[cfg(test)]
