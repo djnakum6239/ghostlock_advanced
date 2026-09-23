@@ -146,7 +146,7 @@ fn exercises_all_cli_commands() {
     run("analyze-xbl-config", &[xbl.to_str().unwrap()]);
     run("validate-offsets", &[offsets.to_str().unwrap()]);
     run_failure("analyze-ota-entry", &[ota.to_str().unwrap(), "missing.img"]);
-    run_failure("analyze-kernel", &[xbl.to_str().unwrap()]);
+    run_failure("analyze-kernel", &[temp.join("missing-kernel.img").to_str().unwrap()]);
 
     for path in [
         boot, kernel, payload, dtb, elf, btf, sparse, xbl, offsets, ota,
