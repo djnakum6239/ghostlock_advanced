@@ -94,3 +94,10 @@ pub struct ValidationSummary {
     pub symbol_names_valid: bool,
     pub tables_consistent: bool,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExtractedKernel {
+    pub source: ImageKind,
+    pub data: Vec<u8>,
+    pub source_offset: Option<u64>,
+}
