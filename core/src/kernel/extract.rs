@@ -6,9 +6,6 @@ fn detect_compression(data: &[u8]) -> CompressionKind {
     else if data.starts_with(&[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]) { CompressionKind::Xz }
     else if data.starts_with(&[0x04, 0x22, 0x4d, 0x18]) { CompressionKind::Lz4 }
     else if data.starts_with(&[0x28, 0xb5, 0x2f, 0xfd]) { CompressionKind::Zstd }
-    else if data.starts_with(&[0x89, 0x4c, 0x5a, 0x4f]) { CompressionKind::Lzop }
-    else if data.len() >= 6 && data[..6] == [0x8d, 0x00, 0x00, 0x00, 0x00, 0x00] { CompressionKind::Brotli }
-    else if data.starts_with(b"\xD6\xC3\x2F\x00") { CompressionKind::Unknown }
     else { CompressionKind::None }
 }
 
@@ -25,14 +22,40 @@ pub fn extract_kernel(data: &[u8]) -> Result<ExtractedKernel> {
                     compression,
                 });
             }
-            let init = parse_init_boot_image(data)?;
-            if !init.ramdisk.is_empty() { bail!("init_boot contains no kernel payload"); }
-            Ok(ExtractedKernel { source: ImageKind::InitBoot, data: Vec::new(), source_offset: None, compression: CompressionKind::None })
+            let _init = parse_init_boot_image(data)?;
+            bail!("init_boot contains no kernel payload; use boot.img")
         }
         b"VNDRBOOT" => {
             let _image = parse_vendor_boot_image(data)?;
             bail!("vendor_boot does not contain the Android kernel payload; use boot.img")
         }
         _ => Ok(ExtractedKernel { source: ImageKind::RawKernel, data: data.to_vec(), source_offset: Some(0), compression: detect_compression(data) }),
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn detects_common_kernel_compression_signatures() {
+        assert_eq!(detect_compression(&[0x1f, 0x8b]), CompressionKind::Gzip);
+        assert_eq!(detect_compression(&[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]), CompressionKind::Xz);
+        assert_eq!(detect_compression(&[0x04, 0x22, 0x4d, 0x18]), CompressionKind::Lz4);
+        assert_eq!(detect_compression(&[0x28, 0xb5, 0x2f, 0xfd]), CompressionKind::Zstd);
+        assert_eq!(detect_compression(b"ELF"), CompressionKind::None);
+    }
+
+    #[test]
+    fn rejects_init_boot_as_kernel_source() {
+        let mut image = vec![0u8; 4096];
+        image[..8].copy_from_slice(b"ANDROID!");
+        image[8..12].copy_from_slice(&0u32.to_le_bytes());
+        image[12..16].copy_from_slice(&1u32.to_le_bytes());
+        image[20..24].copy_from_slice(&1584u32.to_le_bytes());
+        image[40..44].copy_from_slice(&4u32.to_le_bytes());
+        let err = extract_kernel(&image).unwrap_err().to_string();
+        assert!(err.contains("init_boot contains no kernel payload"));
     }
 }
