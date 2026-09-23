@@ -21,6 +21,16 @@ fn main() -> anyhow::Result<()> {
             let data = fs::read(path)?;
             println!("{}", serde_json::to_string_pretty(&uka_core::report::analyze_image(&data)?)?);
         }
+        Some("analyze-ota") => {
+            let path = args.next().ok_or_else(|| anyhow::anyhow!("missing OTA ZIP path"))?;
+            let data = fs::read(path)?;
+            println!("{}", serde_json::to_string_pretty(&uka_core::ota_zip::inspect_ota_zip(&data)?)?);
+        }
+        Some("analyze-payload") => {
+            let path = args.next().ok_or_else(|| anyhow::anyhow!("missing payload.bin path"))?;
+            let data = fs::read(path)?;
+            println!("{}", serde_json::to_string_pretty(&uka_core::payload::parse_payload_header(&data)?)?);
+        }
         Some("validate-offsets") => {
             let path = args.next().ok_or_else(|| anyhow::anyhow!("missing JSON path"))?;
             let text = fs::read_to_string(path)?;
@@ -32,6 +42,8 @@ fn main() -> anyhow::Result<()> {
             eprintln!("  uka-cli analyze-boot <boot.img>");
             eprintln!("  uka-cli analyze-kernel <kernel>");
             eprintln!("  uka-cli analyze <image-or-kernel>");
+            eprintln!("  uka-cli analyze-ota <ota.zip>");
+            eprintln!("  uka-cli analyze-payload <payload.bin>");
             eprintln!("  uka-cli validate-offsets <offsets.json>");
         }
     }
