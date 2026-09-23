@@ -38,12 +38,21 @@ pub fn detect_release(kernel: &[u8]) -> Option<String> {
         return None;
     }
     let release = std::str::from_utf8(&rest[..end]).ok()?;
-    let mut parts = release.split('.');
-    let first = parts.next()?;
-    if first.is_empty() || !first.bytes().all(|byte| byte.is_ascii_digit()) {
+    let version_core = release
+        .split_once(['-', '+', '_', '~'])
+        .map_or(release, |(core, _)| core);
+    let components: Vec<&str> = version_core.split('.').collect();
+    if components.len() < 2
+        || components
+            .iter()
+            .any(|component| component.is_empty() || !component.bytes().all(|byte| byte.is_ascii_digit()))
+    {
         return None;
     }
-    if !release.bytes().all(|byte| byte.is_ascii_alphanumeric() || b".-+_~".contains(&byte)) {
+    if !release
+        .bytes()
+        .all(|byte| byte.is_ascii_alphanumeric() || b".-+_~".contains(&byte))
+    {
         return None;
     }
     Some(release.to_owned())
@@ -226,6 +235,8 @@ mod tests {
         assert_eq!(detect_release(b"Linux version \xff"), None);
         assert_eq!(detect_release(b"Linux version android-kernel"), None);
         assert_eq!(detect_release(b"Linux version 5..4.254"), None);
+        assert_eq!(detect_release(b"Linux version 5"), None);
+        assert_eq!(detect_release(b"Linux version 5.4.254-rc1"), Some("5.4.254-rc1".to_owned()));
     }
 
     #[test]
