@@ -32,11 +32,11 @@ pub fn matches_kernel(doc: &OffsetDocument, release: Option<&str>, build_id: Opt
         .kernel
         .release
         .as_deref()
-        .map_or(true, |v| Some(v) == release);
+.is_none_or(|v| Some(v) == release);
     let build_ok = doc
         .kernel
         .build_id
         .as_deref()
-        .map_or(true, |v| Some(v) == build_id);
+.is_none_or(|v| Some(v) == build_id);
     release_ok && build_ok
 }
