@@ -111,10 +111,14 @@ fn exercises_all_cli_commands() {
     let mut ota_cursor = std::io::Cursor::new(Vec::new());
     {
         let mut zip = ZipWriter::new(&mut ota_cursor);
-        zip.start_file("boot.img", SimpleFileOptions::default()).unwrap();
-        std::io::Write::write_all(&mut zip, &boot_image()).unwrap();
-        zip.start_file("META-INF/com/android/metadata", SimpleFileOptions::default())
+        zip.start_file("boot.img", SimpleFileOptions::default())
             .unwrap();
+        std::io::Write::write_all(&mut zip, &boot_image()).unwrap();
+        zip.start_file(
+            "META-INF/com/android/metadata",
+            SimpleFileOptions::default(),
+        )
+        .unwrap();
         std::io::Write::write_all(&mut zip, b"post-build=sm7325").unwrap();
         zip.finish().unwrap();
     }
@@ -133,7 +137,9 @@ fn exercises_all_cli_commands() {
     run("analyze-xbl-config", &[xbl.to_str().unwrap()]);
     run("validate-offsets", &[offsets.to_str().unwrap()]);
 
-    for path in [boot, kernel, payload, dtb, elf, btf, sparse, xbl, offsets, ota] {
+    for path in [
+        boot, kernel, payload, dtb, elf, btf, sparse, xbl, offsets, ota,
+    ] {
         let _ = fs::remove_file(path);
     }
 }
