@@ -4,13 +4,6 @@ use crate::model::{ImageKind, KernelImage};
 const MAGIC: &[u8; 8] = b"ANDROID!";
 const MODERN_PAGE_SIZE: u32 = 4096;
 
-fn align_up(value: usize, alignment: usize) -> Result<usize> {
-    if alignment == 0 || !alignment.is_power_of_two() { bail!("invalid alignment"); }
-    value.checked_add(alignment - 1)
-        .map(|v| v & !(alignment - 1))
-        .ok_or_else(|| anyhow::anyhow!("alignment overflow"))
-}
-
 pub fn parse_boot_image(data: &[u8]) -> Result<KernelImage> {
     if data.len() < 44 { bail!("image is too small"); }
     if &data[..8] != MAGIC { bail!("not an Android boot image"); }
@@ -102,11 +95,5 @@ mod tests {
     fn rejects_truncated_kernel() {
         let mut data = image(2, 4096, 8); data.truncate(data.len() - 1);
         assert!(parse_boot_image(&data).is_err());
-    }
-
-    #[test]
-    fn align_up_is_checked() {
-        assert_eq!(align_up(4097, 4096).unwrap(), 8192);
-        assert!(align_up(usize::MAX, 4096).is_err());
     }
 }
