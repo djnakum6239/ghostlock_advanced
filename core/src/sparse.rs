@@ -48,7 +48,7 @@ pub fn parse_sparse_header(data: &[u8]) -> Result<SparseHeader> {
         || header.file_header_size < HEADER_SIZE as u16
         || header.chunk_header_size < 12
         || header.block_size == 0
-        || header.block_size % 4 != 0
+        || !header.block_size.is_multiple_of(4)
     {
         bail!("unsupported or invalid sparse image header");
     }
