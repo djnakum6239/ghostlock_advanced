@@ -17,7 +17,7 @@ use crate::{
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", content = "result")]
 pub enum AnalysisResult {
-    Image(AnalysisReport),
+    Image(Box<AnalysisReport>),
     OtaZip(OtaZipSummary),
     Payload(PayloadHeader),
     Elf(ElfHeader),
@@ -56,7 +56,7 @@ pub fn analyze_input(data: &[u8]) -> Result<AnalysisResult> {
     if data.is_empty() {
         bail!("input is empty");
     }
-    Ok(AnalysisResult::Image(analyze_image(data)?))
+    Ok(AnalysisResult::Image(Box::new(analyze_image(data)?)))
 }
 
 #[cfg(test)]
