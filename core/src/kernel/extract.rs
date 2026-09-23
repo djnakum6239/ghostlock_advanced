@@ -10,7 +10,14 @@ fn detect_compression(data: &[u8]) -> CompressionKind {
 }
 
 pub fn extract_kernel(data: &[u8]) -> Result<ExtractedKernel> {
-    if data.len() < 8 { bail!("image is too small"); }
+    if data.len() < 8 {
+        return Ok(ExtractedKernel {
+            source: ImageKind::RawKernel,
+            data: data.to_vec(),
+            source_offset: Some(0),
+            compression: detect_compression(data),
+        });
+    }
     match &data[..8] {
         b"ANDROID!" => {
             if let Ok(image) = parse_boot_image(data) {
