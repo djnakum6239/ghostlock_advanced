@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 const FDT_MAGIC: u32 = 0xd00dfeed;
 const HEADER_SIZE: usize = 40;
+const MEMORY_RESERVATION_ENTRY_SIZE: usize = 16;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DtbHeader {
@@ -50,7 +51,7 @@ pub fn parse_dtb_header(data: &[u8]) -> Result<DtbHeader> {
     }
 
     let total = header.total_size as usize;
-    let check_region = |offset: u32, size: u32| -> Result<()> {
+    let check_region = |offset: u32, size: u32| -> Result<(usize, usize)> {
         let start = offset as usize;
         let end = start
             .checked_add(size as usize)
@@ -58,13 +59,23 @@ pub fn parse_dtb_header(data: &[u8]) -> Result<DtbHeader> {
         if start < HEADER_SIZE || end > total {
             bail!("DTB region is outside image");
         }
-        Ok(())
+        Ok((start, end))
     };
 
-    check_region(header.structure_offset, header.structure_size)?;
-    check_region(header.strings_offset, header.strings_size)?;
-    if header.memory_reservation_offset as usize >= total {
-        bail!("DTB memory reservation table is outside image");
+    let (structure_start, structure_end) =
+        check_region(header.structure_offset, header.structure_size)?;
+    let (strings_start, strings_end) = check_region(header.strings_offset, header.strings_size)?;
+
+    if structure_start < strings_end && strings_start < structure_end {
+        bail!("DTB structure and strings regions overlap");
+    }
+
+    let reservation_start = header.memory_reservation_offset as usize;
+    let reservation_end = reservation_start
+        .checked_add(MEMORY_RESERVATION_ENTRY_SIZE)
+        .ok_or_else(|| anyhow::anyhow!("DTB memory reservation table overflow"))?;
+    if reservation_start < HEADER_SIZE || reservation_end > total {
+        bail!("DTB memory reservation table is truncated");
     }
 
     Ok(header)
@@ -74,30 +85,43 @@ pub fn parse_dtb_header(data: &[u8]) -> Result<DtbHeader> {
 mod tests {
     use super::*;
 
-    #[test]
-    fn parses_dtb_header() {
-        let mut data = vec![0u8; 64];
+    fn valid_dtb() -> Vec<u8> {
+        let mut data = vec![0u8; 80];
         data[0..4].copy_from_slice(&FDT_MAGIC.to_be_bytes());
-        data[4..8].copy_from_slice(&64u32.to_be_bytes());
+        data[4..8].copy_from_slice(&80u32.to_be_bytes());
         data[8..12].copy_from_slice(&40u32.to_be_bytes());
         data[12..16].copy_from_slice(&48u32.to_be_bytes());
-        data[16..20].copy_from_slice(&40u32.to_be_bytes());
+        data[16..20].copy_from_slice(&64u32.to_be_bytes());
         data[20..24].copy_from_slice(&17u32.to_be_bytes());
         data[24..28].copy_from_slice(&16u32.to_be_bytes());
         data[32..36].copy_from_slice(&8u32.to_be_bytes());
         data[36..40].copy_from_slice(&8u32.to_be_bytes());
-        assert_eq!(parse_dtb_header(&data).unwrap().version, 17);
+        data
+    }
+
+    #[test]
+    fn parses_dtb_header() {
+        assert_eq!(parse_dtb_header(&valid_dtb()).unwrap().version, 17);
     }
 
     #[test]
     fn rejects_invalid_dtb_bounds() {
-        let mut data = vec![0u8; 40];
-        data[0..4].copy_from_slice(&FDT_MAGIC.to_be_bytes());
+        let mut data = valid_dtb();
         data[4..8].copy_from_slice(&40u32.to_be_bytes());
-        data[20..24].copy_from_slice(&17u32.to_be_bytes());
-        data[24..28].copy_from_slice(&16u32.to_be_bytes());
-        data[8..12].copy_from_slice(&40u32.to_be_bytes());
-        data[36..40].copy_from_slice(&8u32.to_be_bytes());
+        assert!(parse_dtb_header(&data).is_err());
+    }
+
+    #[test]
+    fn rejects_truncated_memory_reservation_table() {
+        let mut data = valid_dtb();
+        data[16..20].copy_from_slice(&72u32.to_be_bytes());
+        assert!(parse_dtb_header(&data).is_err());
+    }
+
+    #[test]
+    fn rejects_overlapping_structure_and_strings() {
+        let mut data = valid_dtb();
+        data[12..16].copy_from_slice(&44u32.to_be_bytes());
         assert!(parse_dtb_header(&data).is_err());
     }
 }
