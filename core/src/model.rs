@@ -27,6 +27,26 @@ pub struct KernelImage {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VendorBootImage {
+    pub kind: ImageKind,
+    pub header_version: u32,
+    pub page_size: u32,
+    pub kernel_load_addr: u64,
+    pub ramdisk_load_addr: u64,
+    pub vendor_ramdisk_offset: u64,
+    pub vendor_ramdisk_size: u64,
+    pub dtb_offset: u64,
+    pub dtb_size: u64,
+    pub dtb_load_addr: u64,
+    pub vendor_ramdisk_table_offset: Option<u64>,
+    pub vendor_ramdisk_table_size: Option<u64>,
+    pub bootconfig_offset: Option<u64>,
+    pub bootconfig_size: Option<u64>,
+    pub vendor_ramdisk: Vec<u8>,
+    pub dtb: Vec<u8>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisReport {
     pub image: ImageSummary,
     pub kernel: KernelSummary,
