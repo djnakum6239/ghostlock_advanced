@@ -1,0 +1,12 @@
+[package]
+name = "uka-core"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Universal Android image and Linux kernel analysis engine"
+
+[dependencies]
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
