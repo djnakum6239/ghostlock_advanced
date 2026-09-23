@@ -82,6 +82,7 @@ mod tests {
 
         let summary = inspect_ota_zip(bytes.get_ref()).unwrap();
         assert_eq!(summary.entries, 6);
+        assert_eq!(read_ota_entry(bytes.get_ref(), "boot.img").unwrap(), b"test");
         assert!(summary.has_payload);
         assert!(summary.has_boot);
         assert!(summary.has_vendor_boot);
