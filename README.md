@@ -32,6 +32,7 @@ This project is an independent research/analysis implementation. When ideas, for
 No upstream implementation is intentionally copied into this repository unless its license permits reuse. If code is adapted from an upstream project, the relevant source, license, and authors will be identified alongside the implementation.
 
 If you believe a contribution here should receive additional attribution, please open an issue with the relevant upstream project and source location.
+
 ## Repository layout
 - `app/` - Android UI
 - `core/` - Rust analysis engine
@@ -54,7 +55,15 @@ The CLI currently exposes:
 - `uka-cli analyze-kernel <kernel>`
 - `uka-cli analyze <image-or-kernel>`
 - `uka-cli validate-offsets <offsets.json>`
+- `uka-cli analyze-ota <ota.zip>`
+- `uka-cli analyze-ota-entry <ota.zip> <entry>`
+- `uka-cli analyze-payload <payload.bin>`
+- `uka-cli analyze-dtb <dtb>`
+- `uka-cli analyze-elf <elf>`
+- `uka-cli analyze-btf <btf>`
+- `uka-cli analyze-sparse <sparse.img>`
+- `uka-cli analyze-xbl-config <xbl_config.img>`
 
-The unified `analyze` command emits a read-only JSON report covering image type, kernel metadata, compression, symbol summary, and validation fields.
+The unified `analyze` command emits a read-only JSON result for recognized containers and kernel/image formats. Image reports include image type, kernel metadata, compression, symbol summary, and validation fields.
 
 Android integration will be added after the core parser APIs stabilize.
