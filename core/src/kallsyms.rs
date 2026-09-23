@@ -27,13 +27,36 @@ pub fn scan_candidates(kernel: &[u8]) -> Vec<KallsymsCandidate> {
 }
 
 pub fn validate_candidate(candidate: &KallsymsCandidate, kernel_len: usize) -> bool {
-    candidate.address_table.start <= candidate.address_table.end
-        && candidate.names_table.start <= candidate.names_table.end
-        && candidate.token_table.start <= candidate.token_table.end
-        && candidate.token_index.start <= candidate.token_index.end
-        && candidate.address_table.end <= kernel_len
-        && candidate.names_table.end <= kernel_len
-        && candidate.token_table.end <= kernel_len
-        && candidate.token_index.end <= kernel_len
-        && candidate.num_syms > 0
+    fn valid_range(range: &Range<usize>, len: usize) -> bool {
+        range.start < range.end && range.end <= len
+    }
+
+    if !valid_range(&candidate.address_table, kernel_len)
+        || !valid_range(&candidate.names_table, kernel_len)
+        || !valid_range(&candidate.token_table, kernel_len)
+        || !valid_range(&candidate.token_index, kernel_len)
+        || candidate.num_syms == 0
+        || !(0.0..=1.0).contains(&candidate.confidence)
+    {
+        return false;
+    }
+
+    if let Some(markers) = &candidate.markers_table {
+        if !valid_range(markers, kernel_len) {
+            return false;
+        }
+    }
+
+    let address_width = match candidate.address_mode {
+        AddressMode::Absolute => 8,
+        AddressMode::Relative => 4,
+    };
+
+    let Some(expected_address_bytes) = candidate.num_syms.checked_mul(address_width) else {
+        return false;
+    };
+
+    candidate.address_table.len() == expected_address_bytes
+        && candidate.names_table.start >= candidate.address_table.end
+        && candidate.token_index.start >= candidate.token_table.end
 }
