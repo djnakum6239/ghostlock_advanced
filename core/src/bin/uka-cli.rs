@@ -26,6 +26,12 @@ fn main() -> anyhow::Result<()> {
             let data = fs::read(path)?;
             println!("{}", serde_json::to_string_pretty(&uka_core::ota_zip::inspect_ota_zip(&data)?)?);
         }
+        Some("analyze-ota-entry") => {
+            let path = args.next().ok_or_else(|| anyhow::anyhow!("missing OTA ZIP path"))?;
+            let entry = args.next().ok_or_else(|| anyhow::anyhow!("missing OTA entry name"))?;
+            let data = fs::read(path)?;
+            println!("{}", serde_json::to_string_pretty(&uka_core::report::analyze_ota_entry(&data, &entry)?)?);
+        }
         Some("analyze-payload") => {
             let path = args.next().ok_or_else(|| anyhow::anyhow!("missing payload.bin path"))?;
             let data = fs::read(path)?;
@@ -58,6 +64,7 @@ fn main() -> anyhow::Result<()> {
             eprintln!("  uka-cli analyze-kernel <kernel>");
             eprintln!("  uka-cli analyze <image-or-kernel>");
             eprintln!("  uka-cli analyze-ota <ota.zip>");
+            eprintln!("  uka-cli analyze-ota-entry <ota.zip> <entry>");
             eprintln!("  uka-cli analyze-payload <payload.bin>");
             eprintln!("  uka-cli analyze-dtb <dtb>");
             eprintln!("  uka-cli analyze-btf <btf>");
