@@ -53,7 +53,7 @@ mod tests {
     #[test]
     fn inspects_xbl_config_as_opaque_metadata() {
         let summary = inspect_xbl_config(b"key=value\0platform=sm7325\0").unwrap();
-        assert_eq!(summary.size, 27);
+        assert_eq!(summary.size, 26);
         assert_eq!(summary.printable_strings, 2);
         assert!(summary.has_null_padding);
     }
