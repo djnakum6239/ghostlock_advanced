@@ -28,3 +28,7 @@ Unknown non-empty data is treated as a raw kernel/image candidate and passed thr
 ## Stability
 
 This schema is WIP and may change before the first stable release. Consumers should tolerate missing optional fields and unknown future result variants.
+
+## Provenance
+
+Reports include a schema version and a provenance object identifying the analyzer as read-only. This metadata makes exported reports easier to distinguish from executable or privileged tooling.
