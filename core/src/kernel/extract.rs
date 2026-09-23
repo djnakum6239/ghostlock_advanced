@@ -17,14 +17,20 @@ pub fn extract_kernel(data: &[u8]) -> Result<ExtractedKernel> {
     match &data[..8] {
         b"ANDROID!" => {
             if let Ok(image) = parse_boot_image(data) {
-                return Ok(ExtractedKernel { source: image.kind, data: image.kernel, source_offset: image.kernel_offset, compression: detect_compression(&image.kernel) });
+                let compression = detect_compression(&image.kernel);
+                return Ok(ExtractedKernel {
+                    source: image.kind,
+                    data: image.kernel,
+                    source_offset: image.kernel_offset,
+                    compression,
+                });
             }
             let init = parse_init_boot_image(data)?;
             if !init.ramdisk.is_empty() { bail!("init_boot contains no kernel payload"); }
             Ok(ExtractedKernel { source: ImageKind::InitBoot, data: Vec::new(), source_offset: None, compression: CompressionKind::None })
         }
         b"VNDRBOOT" => {
-            let image = parse_vendor_boot_image(data)?;
+            let _image = parse_vendor_boot_image(data)?;
             bail!("vendor_boot does not contain the Android kernel payload; use boot.img")
         }
         _ => Ok(ExtractedKernel { source: ImageKind::RawKernel, data: data.to_vec(), source_offset: Some(0), compression: detect_compression(data) }),
