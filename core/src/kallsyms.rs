@@ -33,23 +33,44 @@ fn read_u64_le(data: &[u8], offset: usize) -> Option<u64> {
     Some(u64::from_le_bytes(data.get(offset..offset + 8)?.try_into().ok()?))
 }
 
-fn looks_like_token_index(data: &[u8], offset: usize) -> Option<usize> {
+fn looks_like_token_index(data: &[u8], offset: usize) -> bool {
     let mut previous = 0u16;
     let mut distinct = 0usize;
     for index in 0..256 {
-        let value = read_u16_le(data, offset + index * 2)?;
+        let Some(value) = read_u16_le(data, offset + index * 2) else { return false; };
         if index > 0 && value < previous {
-            return None;
+            return false;
         }
         if index > 0 && value != previous {
             distinct += 1;
         }
         previous = value;
     }
-    if previous == 0 || distinct < 8 {
-        return None;
+    previous != 0 && distinct >= 8
+}
+
+fn valid_token_table(data: &[u8], start: usize, end: usize) -> bool {
+    if start >= end || end > data.len() || end - start > 0xffff {
+        return false;
     }
-    Some(previous as usize + 1)
+    for index in 0..256usize {
+        let Some(token_offset) = read_u16_le(data, end + index * 2) else {
+            return false;
+        };
+        let token_offset = token_offset as usize;
+        if token_offset >= end - start {
+            return false;
+        }
+        let token_start = start + token_offset;
+        let Some(token_end) = data[token_start..end].iter().position(|&byte| byte == 0) else {
+            return false;
+        };
+        let token = &data[token_start..token_start + token_end];
+        if token.is_empty() || token.len() > 255 || token.iter().any(|byte| !byte.is_ascii_graphic() && *byte != b' ') {
+            return false;
+        }
+    }
+    true
 }
 
 fn monotonic_addresses(data: &[u8], start: usize, count: usize, width: usize) -> bool {
@@ -140,16 +161,23 @@ pub fn scan_candidates(kernel: &[u8]) -> Vec<KallsymsCandidate> {
     while token_index_offset + TOKEN_INDEX_BYTES <= kernel.len()
         && candidates.len() < MAX_CANDIDATES
     {
-        let Some(token_table_length) = looks_like_token_index(kernel, token_index_offset) else {
+        if !looks_like_token_index(kernel, token_index_offset) {
             token_index_offset += 2;
             continue;
-        };
+        }
 
-        let Some(token_table_start) = token_index_offset.checked_sub(token_table_length) else {
-            token_index_offset += 2;
-            continue;
-        };
-        if token_table_start == 0 {
+        let search_start = token_index_offset.saturating_sub(SEARCH_WINDOW);
+        let mut token_table_start = token_index_offset.saturating_sub(1);
+        while token_table_start >= search_start {
+            if valid_token_table(kernel, token_table_start, token_index_offset) {
+                break;
+            }
+            if token_table_start == 0 {
+                break;
+            }
+            token_table_start -= 1;
+        }
+        if !valid_token_table(kernel, token_table_start, token_index_offset) {
             token_index_offset += 2;
             continue;
         }
@@ -283,8 +311,9 @@ mod tests {
         kernel[8..16].copy_from_slice(&0x2000u64.to_le_bytes());
         kernel[16..20].copy_from_slice(&2u32.to_le_bytes());
         kernel[20..24].copy_from_slice(&[1, 2, 3, 0]);
+        kernel[24..40].copy_from_slice(b"A\0B\0C\0D\0E\0F\0G\0H\0I\0J\0K\0L\0M\0N\0O\0P\0");
         for index in 0..256usize {
-            let value = index.min(15) as u16;
+            let value = (index.min(15) * 2) as u16;
             let offset = 40 + index * 2;
             kernel[offset..offset + 2].copy_from_slice(&value.to_le_bytes());
         }
