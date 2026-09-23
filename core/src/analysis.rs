@@ -11,6 +11,7 @@ use crate::{
     payload::{parse_payload_header, PayloadHeader},
     report::analyze_image,
     sparse::{parse_sparse_header, SparseHeader},
+    xbl_config::{inspect_xbl_config, XblConfigSummary},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -23,6 +24,7 @@ pub enum AnalysisResult {
     Dtb(DtbHeader),
     Btf(BtfHeader),
     Sparse(SparseHeader),
+    XblConfig(XblConfigSummary),
 }
 
 pub fn analyze_input(data: &[u8]) -> Result<AnalysisResult> {
@@ -43,6 +45,9 @@ pub fn analyze_input(data: &[u8]) -> Result<AnalysisResult> {
     }
     if data.len() >= 4 && data[..4] == [0x3a, 0xff, 0x26, 0xed] {
         return Ok(AnalysisResult::Sparse(parse_sparse_header(data)?));
+    }
+    if data.windows(9).any(|window| window == b"xbl_config") {
+        return Ok(AnalysisResult::XblConfig(inspect_xbl_config(data)?));
     }
     if data.is_empty() {
         bail!("input is empty");
