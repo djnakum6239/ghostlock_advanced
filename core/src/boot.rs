@@ -16,6 +16,7 @@ pub fn parse_boot_image(data: &[u8]) -> Result<KernelImage> {
     if &data[..8] != MAGIC { bail!("not an Android boot image"); }
 
     let kernel_size = u32::from_le_bytes(data[8..12].try_into()?) as usize;
+    if kernel_size == 0 { bail!("boot image kernel size is zero"); }
     let header_version = u32::from_le_bytes(data[40..44].try_into()?);
 
     let (page_size, kernel_load_addr, kernel_offset) = match header_version {
