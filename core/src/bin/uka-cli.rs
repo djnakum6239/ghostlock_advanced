@@ -42,6 +42,11 @@ fn main() -> anyhow::Result<()> {
             let data = fs::read(path)?;
             println!("{}", serde_json::to_string_pretty(&uka_core::dtb::parse_dtb_header(&data)?)?);
         }
+        Some("analyze-elf") => {
+            let path = args.next().ok_or_else(|| anyhow::anyhow!("missing ELF path"))?;
+            let data = fs::read(path)?;
+            println!("{}", serde_json::to_string_pretty(&uka_core::elf::parse_elf_header(&data)?)?);
+        }
         Some("analyze-btf") => {
             let path = args.next().ok_or_else(|| anyhow::anyhow!("missing BTF path"))?;
             let data = fs::read(path)?;
@@ -67,6 +72,7 @@ fn main() -> anyhow::Result<()> {
             eprintln!("  uka-cli analyze-ota-entry <ota.zip> <entry>");
             eprintln!("  uka-cli analyze-payload <payload.bin>");
             eprintln!("  uka-cli analyze-dtb <dtb>");
+            eprintln!("  uka-cli analyze-elf <elf>");
             eprintln!("  uka-cli analyze-btf <btf>");
             eprintln!("  uka-cli analyze-sparse <sparse.img>");
             eprintln!("  uka-cli validate-offsets <offsets.json>");
