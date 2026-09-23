@@ -8,6 +8,17 @@ pub struct KernelMetadata {
     pub architecture: Option<String>,
     pub compression: Option<String>,
     pub btf_present: bool,
+
+    #[test]
+    fn combines_detected_kernel_metadata() {
+        let kernel = b"Linux version 5.4.254-qgki-gd8141a929274 #1 gcc version 12.3.0";
+        let metadata = super::detect_metadata(kernel);
+        assert_eq!(metadata.release.as_deref(), Some("5.4.254-qgki-gd8141a929274"));
+        assert_eq!(metadata.compiler.as_deref(), Some("12.3.0"));
+        assert_eq!(metadata.architecture, None);
+        assert!(!metadata.btf_present);
+    }
+
 }
 
 pub fn detect_architecture(kernel: &[u8]) -> Option<&'static str> {
@@ -69,6 +80,15 @@ pub fn detect_compiler(kernel: &[u8]) -> Option<String> {
     }
 
     None
+}
+
+pub fn detect_metadata(kernel: &[u8]) -> KernelMetadata {
+    KernelMetadata {
+        release: detect_release(kernel),
+        compiler: detect_compiler(kernel),
+        architecture: detect_architecture(kernel).map(str::to_owned),
+        ..KernelMetadata::default()
+    }
 }
 
 #[cfg(test)]
