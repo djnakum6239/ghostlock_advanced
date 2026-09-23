@@ -119,6 +119,23 @@ mod tests {
     }
 
     #[test]
+    fn reports_embedded_kallsyms_candidate() {
+        let mut kernel = vec![0u8; 40 + 256 * 2];
+        kernel[0..8].copy_from_slice(&0x1000u64.to_le_bytes());
+        kernel[8..16].copy_from_slice(&0x2000u64.to_le_bytes());
+        kernel[16..20].copy_from_slice(&2u32.to_le_bytes());
+        kernel[20..24].copy_from_slice(&[1, 2, 3, 0]);
+        for index in 0..256usize {
+            let value = index.min(15) as u16;
+            let offset = 40 + index * 2;
+            kernel[offset..offset + 2].copy_from_slice(&value.to_le_bytes());
+        }
+        let report = analyze_image(&kernel).unwrap();
+        assert_eq!(report.symbols.source.as_deref(), Some("embedded-kallsyms"));
+        assert_eq!(report.symbols.count, Some(2));
+    }
+
+    #[test]
     fn analyzes_init_boot_without_kernel_payload() {
         let mut image = vec![0u8; 4096 + 4];
         image[..8].copy_from_slice(b"ANDROID!");
