@@ -141,6 +141,7 @@ mod tests {
         data[..4].copy_from_slice(b"\x7fELF");
         data[4] = 2;
         data[5] = 1;
+        data[6] = 1;
         data[18..20].copy_from_slice(&183u16.to_le_bytes());
         data[54..56].copy_from_slice(&56u16.to_le_bytes());
         data[56..58].copy_from_slice(&1u16.to_le_bytes());
@@ -157,7 +158,7 @@ mod tests {
     #[test]
     fn rejects_invalid_elf_header_size() {
         let mut data = vec![0u8; 64];
-        data[..4].copy_from_slice(b"\\x7fELF");
+        data[..4].copy_from_slice(b"\x7fELF");
         data[4] = 2;
         data[5] = 1;
         data[6] = 1;
